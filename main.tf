@@ -3,21 +3,21 @@ data "yandex_client_config" "client" {}
 
 ### Locals
 locals {
-  folder_id = var.folder_id == null ? data.yandex_client_config.client.folder_id : var.folder_id
+  folder_id      = var.folder_id == null ? data.yandex_client_config.client.folder_id : var.folder_id
   enable_oslogin = lookup(var.enable_oslogin_or_ssh_keys, "enable-oslogin", "false")
-  ssh_key = lookup(var.enable_oslogin_or_ssh_keys, "ssh_key", null)
-  ssh_user = lookup(var.enable_oslogin_or_ssh_keys, "ssh_user", null)
+  ssh_key        = lookup(var.enable_oslogin_or_ssh_keys, "ssh_key", null)
+  ssh_user       = lookup(var.enable_oslogin_or_ssh_keys, "ssh_user", null)
 }
 
 data "yandex_compute_image" "image" {
   family = var.image_family
-  count = var.image_family != null ? 1 : 0
+  count  = var.image_family != null ? 1 : 0
 }
 
 
 resource "yandex_compute_instance" "this" {
 
-  name = var.name
+  name               = var.name
   platform_id        = var.platform_id
   zone               = var.zone
   description        = var.description
@@ -27,7 +27,7 @@ resource "yandex_compute_instance" "this" {
   labels             = var.labels
   metadata = merge(
     var.custom_metadata,
-    var.serial_port_enable ? {"serial-port-enable" = "1"} : {},
+    var.serial_port_enable ? { "serial-port-enable" = "1" } : {},
     var.monitoring || var.backup ? {
       "user-data" = format("#cloud-config\npackages:\n  - curl\n  - perl\n  - jq\n%s\nruncmd:\n%s",
         local.ssh_key != null ? format("users:\n  - name: %s\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - %s",
@@ -48,9 +48,9 @@ resource "yandex_compute_instance" "this" {
 
   allow_stopping_for_update = var.allow_stopping_for_update
   network_acceleration_type = var.network_acceleration_type
-  gpu_cluster_id     = var.gpu_cluster_id
-  maintenance_policy = var.maintenance_policy
-  maintenance_grace_period = var.maintenance_grace_period
+  gpu_cluster_id            = var.gpu_cluster_id
+  maintenance_policy        = var.maintenance_policy
+  maintenance_grace_period  = var.maintenance_grace_period
   resources {
     cores         = var.cores
     core_fraction = var.core_fraction
@@ -67,12 +67,12 @@ resource "yandex_compute_instance" "this" {
   dynamic "network_interface" {
     for_each = var.network_interfaces
     content {
-      subnet_id          = network_interface.value.subnet_id
-      index              = lookup(network_interface.value, "index", null)
-      ipv4               = lookup(network_interface.value, "ipv4", false)
-      ip_address         = lookup(network_interface.value, "ip_address", null)
-      nat                = lookup(network_interface.value, "nat", false)
-      nat_ip_address     = lookup(network_interface.value, "nat", false) && var.static_ip != null ? yandex_vpc_address.static_ip[0].external_ipv4_address[0].address : null
+      subnet_id      = network_interface.value.subnet_id
+      index          = lookup(network_interface.value, "index", null)
+      ipv4           = lookup(network_interface.value, "ipv4", false)
+      ip_address     = lookup(network_interface.value, "ip_address", null)
+      nat            = lookup(network_interface.value, "nat", false)
+      nat_ip_address = lookup(network_interface.value, "nat", false) && var.static_ip != null ? yandex_vpc_address.static_ip[0].external_ipv4_address[0].address : null
 
       security_group_ids = lookup(network_interface.value, "security_group_ids", null)
 
@@ -89,15 +89,15 @@ resource "yandex_compute_instance" "this" {
   }
 
 
-dynamic "secondary_disk" {
-  for_each = var.secondary_disks != null ? [for s in var.secondary_disks : s] : []
-  content {
-    disk_id     = secondary_disk.value.disk_id != null ? secondary_disk.value.disk_id : yandex_compute_disk.secondary[secondary_disk.key].id
-    auto_delete = secondary_disk.value.auto_delete
-    device_name = secondary_disk.value.device_name != null ? secondary_disk.value.device_name : format("secondary-disk-%02d", secondary_disk.key + 1)
-    mode        = secondary_disk.value.mode
+  dynamic "secondary_disk" {
+    for_each = var.secondary_disks != null ? [for s in var.secondary_disks : s] : []
+    content {
+      disk_id     = secondary_disk.value.disk_id != null ? secondary_disk.value.disk_id : yandex_compute_disk.secondary[secondary_disk.key].id
+      auto_delete = secondary_disk.value.auto_delete
+      device_name = secondary_disk.value.device_name != null ? secondary_disk.value.device_name : format("secondary-disk-%02d", secondary_disk.key + 1)
+      mode        = secondary_disk.value.mode
+    }
   }
-}
 
   scheduling_policy {
     preemptible = var.scheduling_policy_preemptible
@@ -125,5 +125,5 @@ dynamic "secondary_disk" {
       mode          = filesystem.value.mode
     }
   }
-  
+
 }

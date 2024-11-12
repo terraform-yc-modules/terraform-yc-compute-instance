@@ -1,6 +1,6 @@
 
 resource "yandex_compute_disk" "this" {
-  name               = var.name
+  name        = var.name
   description = var.description
   folder_id   = local.folder_id
   zone        = var.zone
@@ -9,7 +9,7 @@ resource "yandex_compute_disk" "this" {
   type        = var.type
   image_id    = var.image_family != null ? data.yandex_compute_image.image[0].id : var.image_id
   snapshot_id = var.snapshot_id
-  labels             = var.labels
+  labels      = var.labels
 
   dynamic "disk_placement_policy" {
     for_each = var.disk_placement_policy != null ? [var.disk_placement_policy] : []

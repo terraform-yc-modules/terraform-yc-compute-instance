@@ -85,23 +85,23 @@ variable "network_interfaces" {
       nat                = false
       nat_ip_address     = null
       security_group_ids = null
-      dns_record = []
+      dns_record         = []
     }
   ]
 }
 variable "static_ip" {
   description = "Configuration for static IP address"
   type = object({
-    description               = optional(string)
-    folder_id                 = optional(string)
-    labels                    = optional(map(string))
-    deletion_protection       = optional(bool)
-    external_ipv4_address     = optional(object({
-      zone_id                   = string
-      ddos_protection_provider  = optional(string)
-      outgoing_smtp_capability  = optional(string)
+    description         = optional(string)
+    folder_id           = optional(string)
+    labels              = optional(map(string))
+    deletion_protection = optional(bool)
+    external_ipv4_address = optional(object({
+      zone_id                  = string
+      ddos_protection_provider = optional(string)
+      outgoing_smtp_capability = optional(string)
     }))
-    dns_record                = optional(object({
+    dns_record = optional(object({
       fqdn        = string
       dns_zone_id = string
       ttl         = optional(number)
@@ -235,21 +235,21 @@ variable "labels" {
 }
 
 variable "enable_oslogin_or_ssh_keys" {
-   description = "Enabling OS Login or adding ssh-keys to metadata of node-groups."
-   type        = map(any)
-   default = {
-     enable-oslogin = "false"
-     ssh_user       = null
-     ssh_key        = null
-   }
-   validation {
-     condition = contains(["true", "false"], var.enable_oslogin_or_ssh_keys.enable-oslogin) &&  ((var.enable_oslogin_or_ssh_keys.enable-oslogin == "true" && var.enable_oslogin_or_ssh_keys.ssh_user == null && var.enable_oslogin_or_ssh_keys.ssh_key == null) ||
-                 (var.enable_oslogin_or_ssh_keys.enable-oslogin == "false" && var.enable_oslogin_or_ssh_keys.ssh_user != null && var.enable_oslogin_or_ssh_keys.ssh_key != null))
-     error_message = "Either OS Login should be enabled or SSH keys (ssh_user and ssh_key) should be provided."
-   }
+  description = "Enabling OS Login or adding ssh-keys to metadata of node-groups."
+  type        = map(any)
+  default = {
+    enable-oslogin = "false"
+    ssh_user       = null
+    ssh_key        = null
+  }
+  validation {
+    condition = contains(["true", "false"], var.enable_oslogin_or_ssh_keys.enable-oslogin) && ((var.enable_oslogin_or_ssh_keys.enable-oslogin == "true" && var.enable_oslogin_or_ssh_keys.ssh_user == null && var.enable_oslogin_or_ssh_keys.ssh_key == null) ||
+    (var.enable_oslogin_or_ssh_keys.enable-oslogin == "false" && var.enable_oslogin_or_ssh_keys.ssh_user != null && var.enable_oslogin_or_ssh_keys.ssh_key != null))
+    error_message = "Either OS Login should be enabled or SSH keys (ssh_user and ssh_key) should be provided."
+  }
 }
- variable "custom_metadata" {
-   description = <<-EOF
+variable "custom_metadata" {
+  description = <<-EOF
      Adding custom metadata to node-groups.
      Example:
      ```
@@ -258,10 +258,10 @@ variable "enable_oslogin_or_ssh_keys" {
      }
      ```
    EOF
-   type        = map(any)
-   default     = {}
- }
- variable "metadata_options" {
+  type        = map(any)
+  default     = {}
+}
+variable "metadata_options" {
   description = "Metadata options for the instance"
   type = object({
     http_endpoint = string
@@ -333,7 +333,7 @@ variable "placement_policy" {
     }))
   })
   default = {
-    placement_group_id = null
+    placement_group_id  = null
     host_affinity_rules = []
   }
 }
@@ -369,14 +369,14 @@ variable "backup" {
 variable "filesystems" {
   description = "List of filesystems that are attached to the instance."
   type = list(object({
-    filesystem_id = optional(string, null)  
-    device_name   = optional(string, null)   
-    mode          = optional(string, "READ_WRITE")  
-    description   = optional(string, null)  
-    zone          = optional(string, null)  
-    size          = optional(number, 10)    
-    block_size    = optional(number, 4096) 
-    type          = optional(string, "network-ssd") 
+    filesystem_id = optional(string, null)
+    device_name   = optional(string, null)
+    mode          = optional(string, "READ_WRITE")
+    description   = optional(string, null)
+    zone          = optional(string, null)
+    size          = optional(number, 10)
+    block_size    = optional(number, 4096)
+    type          = optional(string, "network-ssd")
   }))
   default = []
 }
@@ -385,7 +385,7 @@ variable "filesystems" {
 variable "secondary_disks" {
   description = "List of secondary disks"
   type = list(object({
-    index              = optional(number)
+    index       = optional(number)
     disk_id     = optional(string)
     auto_delete = optional(bool, true)
     device_name = optional(string, "secondary-disk")
