@@ -58,11 +58,10 @@ resource "yandex_compute_instance" "this" {
     gpus          = var.gpus
   }
   boot_disk {
-    auto_delete = var.boot_disk_auto_delete
-    device_name = var.boot_disk_device_name
-    mode        = var.boot_disk_mode
-    disk_id     = yandex_compute_disk.this != null ? yandex_compute_disk.this.id : var.boot_disk_disk_id
-
+    auto_delete = lookup(var.boot_disk, "auto_delete", true)
+    device_name = lookup(var.boot_disk, "device_name", "boot-disk")
+    mode        = lookup(var.boot_disk, "mode", "READ_WRITE")
+    disk_id     = yandex_compute_disk.this != null ? yandex_compute_disk.this.id : lookup(var.boot_disk, "disk_id", null)
   }
   dynamic "network_interface" {
     for_each = var.network_interfaces

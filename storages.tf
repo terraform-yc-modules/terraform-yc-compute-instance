@@ -12,7 +12,7 @@ resource "yandex_compute_disk" "this" {
   labels      = var.labels
 
   dynamic "disk_placement_policy" {
-    for_each = var.disk_placement_policy != null ? [var.disk_placement_policy] : []
+    for_each = var.type == "network-ssd-nonreplicated" && var.disk_placement_policy != null ? [var.disk_placement_policy] : []
     content {
       disk_placement_group_id = disk_placement_policy.value.disk_placement_group_id
     }
@@ -29,7 +29,14 @@ resource "yandex_compute_disk" "secondary" {
   block_size  = lookup(each.value, "block_size", null)
   type        = lookup(each.value, "type", null)
   labels      = var.labels != null ? var.labels : null
+  dynamic "disk_placement_policy" {
+    for_each = var.type == "network-ssd-nonreplicated" && var.disk_placement_policy != null ? [var.disk_placement_policy] : []
+    content {
+      disk_placement_group_id = disk_placement_policy.value.disk_placement_group_id
+    }
+  }
 }
+
 
 resource "yandex_compute_filesystem" "this" {
   for_each    = var.filesystems != null ? { for idx, fs in var.filesystems : idx => fs } : {}

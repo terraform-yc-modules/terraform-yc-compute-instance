@@ -162,71 +162,18 @@ variable "folder_id" {
   default     = null
 }
 
-variable "boot_disk_auto_delete" {
-  description = "Defines whether the disk will be auto-deleted when the instance is deleted. The default value is true."
-  type        = bool
-  default     = true
+variable "boot_disk" {
+  description = "Configuration for the boot disk"
+  type = object({
+    auto_delete = optional(bool, true)
+    device_name = optional(string, "boot-disk")
+    mode        = optional(string, "READ_WRITE")
+    disk_id     = optional(string, null)
+  })
+  default = {}
 }
 
-variable "boot_disk_device_name" {
-  description = "The device name of the boot disk."
-  type        = string
-  default     = null
-}
 
-variable "boot_disk_mode" {
-  description = "Type of access to the disk resource. By default, a disk is attached in READ_WRITE mode."
-  type        = string
-  default     = "READ_WRITE"
-}
-
-variable "boot_disk_disk_id" {
-  description = "The ID of the boot disk."
-  type        = string
-  default     = null
-}
-
-variable "boot_disk_name" {
-  description = "The name of the boot disk."
-  type        = string
-  default     = null
-}
-
-variable "boot_disk_description" {
-  description = "The description of the boot disk."
-  type        = string
-  default     = null
-}
-
-variable "boot_disk_size" {
-  description = "The size of the boot disk."
-  type        = number
-  default     = 10
-}
-
-variable "boot_disk_block_size" {
-  description = "The block size of the boot disk."
-  type        = number
-  default     = 4096
-}
-
-variable "boot_disk_type" {
-  description = "The type of the boot disk."
-  type        = string
-  default     = "network-ssd"
-}
-
-variable "boot_disk_image_id" {
-  description = "The image ID of the boot disk."
-  type        = string
-  default     = null
-}
-
-variable "boot_disk_snapshot_id" {
-  description = "The snapshot ID of the boot disk."
-  type        = string
-  default     = null
-}
 
 variable "labels" {
   description = "A set of key/value label pairs to assign to the instance."

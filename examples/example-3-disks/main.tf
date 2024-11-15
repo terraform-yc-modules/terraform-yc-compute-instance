@@ -13,6 +13,7 @@ module "dev" {
   core_fraction             = 100
   serial_port_enable        = true
   allow_stopping_for_update = true
+
   enable_oslogin_or_ssh_keys = {
     enable-oslogin = "true"
     ssh_user       = null
@@ -48,9 +49,12 @@ module "dev" {
       auto_delete = true
       device_name = "third-disk"
       mode        = "READ_WRITE"
-      size        = 100
+      size        = 93
       block_size  = 4096
-      type        = "network-hdd"
+      type        = "network-ssd-nonreplicated"
+      disk_placement_policy = {
+        disk_placement_group_id = yandex_compute_disk_placement_group.dev.id
+      }
     }
   ]
   filesystems = [
@@ -65,4 +69,8 @@ module "dev" {
       zone          = var.yc_zone
     }
   ]
+}
+resource "yandex_compute_disk_placement_group" "dev" {
+  name        = "dev-placement-group"
+  description = "Placement group for network-ssd-nonreplicated disks"
 }
