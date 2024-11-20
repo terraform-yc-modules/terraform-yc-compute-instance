@@ -260,7 +260,7 @@ variable "service_account_id" {
 }
 
 variable "monitoring" {
-  description = "Flag to create a new service account if service_account_id is not provided"
+  description = "Flag to create a new service account if service_account_id is not provided. UI will't show checkbox 'Monitoring enabled' but will works"
   type        = bool
   default     = false
 }
