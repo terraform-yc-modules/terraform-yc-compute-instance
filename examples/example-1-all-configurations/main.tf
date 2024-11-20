@@ -4,17 +4,22 @@ module "dev" {
   zone                      = var.yc_zone
   name                      = "dev"
   hostname                  = "dev"
-  is_nat                    = false
   description               = "dev"
   memory                    = 8
   gpus                      = 0
   cores                     = 4
-  type                      = "network-ssd"
   core_fraction             = 100
   serial_port_enable        = true
   allow_stopping_for_update = true
   monitoring                = true
-  backup                    = true
+  backup                    = false
+  boot_disk = {
+    size        = 30
+    block_size  = 4096
+    type        = "network-ssd"
+    image_id    = null
+    snapshot_id = null
+  }
   secondary_disks = [
     {
       disk_id     = null
@@ -38,10 +43,6 @@ module "dev" {
     enable-oslogin = "true"
     ssh_key        = null
     ssh_user       = null
-  }
-  metadata_options = {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
   }
   network_interfaces = [
     {

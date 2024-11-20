@@ -50,15 +50,7 @@ variable "hostname" {
   default     = ""
 }
 
-variable "size" {
-  description = "The size of the disk in GB."
-  type        = number
-  default     = 30
-  validation {
-    condition     = var.size >= 4 && var.size <= 8192
-    error_message = "Disk size must be in range [4, 8192] GB."
-  }
-}
+
 variable "network_interfaces" {
   description = "List of network interfaces"
   type = list(object({
@@ -111,39 +103,10 @@ variable "static_ip" {
   default = null
 }
 
-variable "block_size" {
-  description = "Block size of the disk, specified in bytes"
-  type        = number
-  default     = 4096
 
-  validation {
-    condition     = contains([4096, 8192, 16384, 32768, 65536, 131072], var.block_size)
-    error_message = "Block size must be one of 4096, 8192, 16384, 32768, 65536, 131072."
-  }
-}
-variable "type" {
-  description = "Type of disk to create."
-  type        = string
-  validation {
-    condition     = contains(["network-hdd", "network-ssd", "network-ssd-nonreplicated", "network-ssd-io-m3"], var.type)
-    error_message = "The type must be one of: network-hdd, network-ssd, network-ssd-io-m3, network-ssd-nonreplicated."
-  }
-}
-
-variable "image_id" {
-  description = "The source image to use for disk creation"
-  type        = string
-  default     = null
-}
 
 variable "image_family" {
   description = "The source image family to use for disk creation. command: yc compute image list --folder-id standard-images"
-  type        = string
-  default     = null
-}
-
-variable "snapshot_id" {
-  description = "The source snapshot to use for disk creation"
   type        = string
   default     = null
 }
@@ -169,8 +132,32 @@ variable "boot_disk" {
     device_name = optional(string, "boot-disk")
     mode        = optional(string, "READ_WRITE")
     disk_id     = optional(string, null)
+    size        = optional(number, 30)
+    block_size  = optional(number, 4096)
+    type        = optional(string, "network-hdd")
+    image_id    = optional(string, null)
+    snapshot_id = optional(string, null)
   })
   default = {}
+
+  validation {
+    condition = (
+      var.boot_disk.size == null || (var.boot_disk.size >= 4 && var.boot_disk.size <= 8192)
+      ) && (
+      var.boot_disk.block_size == null || contains([4096, 8192], var.boot_disk.block_size)
+      ) && (
+      var.boot_disk.type == null || contains(["network-hdd", "network-ssd", "network-ssd-nonreplicated", "network-ssd-io-m3"], var.boot_disk.type)
+      ) && (
+      var.boot_disk.mode == null || contains(["READ_WRITE", "READ_ONLY"], var.boot_disk.mode)
+    )
+    error_message = <<EOT
+Validation failed for boot_disk:
+- size must be in range [4, 8192] GB if specified.
+- block size must be one of 4096, 8192, 16384, 32768, 65536, 131072.
+- type must be one of 'network-hdd', 'network-ssd', or 'network-ssd-nonreplicated' if specified.
+- mode must be either 'READ_WRITE' or 'READ_ONLY' if specified.
+EOT
+  }
 }
 
 
@@ -208,17 +195,6 @@ variable "custom_metadata" {
   type        = map(any)
   default     = {}
 }
-variable "metadata_options" {
-  description = "Metadata options for the instance"
-  type = object({
-    http_endpoint = string
-    http_tokens   = string
-  })
-  default = {
-    http_endpoint = "disabled"
-    http_tokens   = "optional"
-  }
-}
 variable "serial_port_enable" {
   description = "Enable serial port"
   type        = bool
@@ -253,15 +229,6 @@ variable "maintenance_grace_period" {
   type        = string
   default     = ""
 }
-
-
-variable "is_nat" {
-  description = "Whether to enable NAT for the instance."
-  type        = bool
-  default     = false
-}
-
-
 
 variable "scheduling_policy_preemptible" {
   description = "Specifies if the instance is preemptible. Defaults to false."

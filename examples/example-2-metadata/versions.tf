@@ -6,6 +6,10 @@ terraform {
       source  = "yandex-cloud/yandex"
       version = "= 0.127"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.0"
+    }
   }
 }
 provider "yandex" {
@@ -14,5 +18,3 @@ provider "yandex" {
 
 
 provider "local" {}
-
-provider "random" {}
