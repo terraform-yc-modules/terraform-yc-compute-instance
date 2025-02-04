@@ -11,8 +11,8 @@ module "dev" {
   core_fraction             = 100
   serial_port_enable        = true
   allow_stopping_for_update = true
-  monitoring                = true
-  backup                    = true
+  monitoring                = false
+  backup                    = false
   boot_disk = {
     size        = 30
     block_size  = 4096

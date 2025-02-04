@@ -3,10 +3,16 @@ data "yandex_client_config" "client" {}
 
 ### Locals
 locals {
-  folder_id      = var.folder_id == null ? data.yandex_client_config.client.folder_id : var.folder_id
-  enable_oslogin = lookup(var.enable_oslogin_or_ssh_keys, "enable-oslogin", "false")
-  ssh_key        = lookup(var.enable_oslogin_or_ssh_keys, "ssh_key", null)
-  ssh_user       = lookup(var.enable_oslogin_or_ssh_keys, "ssh_user", null)
+  folder_id            = var.folder_id == null ? data.yandex_client_config.client.folder_id : var.folder_id
+  enable_oslogin       = lookup(var.enable_oslogin_or_ssh_keys, "enable-oslogin", "false")
+  ssh_key              = lookup(var.enable_oslogin_or_ssh_keys, "ssh_key", null)
+  ssh_user             = lookup(var.enable_oslogin_or_ssh_keys, "ssh_user", null)
+  is_oslogin_supported = local.enable_oslogin == "true" ? contains(var.supported_oslogin_images, var.image_family) : true
+  oslogin_error_message = format(
+    "ERROR: OS Login is enabled, but image '%s' is not in the supported list: %s",
+    var.image_family,
+    join(", ", var.supported_oslogin_images)
+  )
 }
 
 data "yandex_compute_image" "image" {
@@ -39,11 +45,15 @@ resource "yandex_compute_instance" "this" {
           var.monitoring ? "  - wget -O - https://monitoring.api.cloud.yandex.net/monitoring/v2/unifiedAgent/config/install.sh | bash" : null
         ]))
       )
-    } : {},
-    local.enable_oslogin == "true" ? {
-      "enable-oslogin" = local.enable_oslogin
-    } : {}
+      } : {
+      "user-data" = local.ssh_key != null ? format("#cloud-config\nusers:\n  - name: %s\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - %s",
+        local.ssh_user != null ? local.ssh_user : "default_user",
+        file(local.ssh_key)
+      ) : ""
+    },
+    local.enable_oslogin == "true" ? { "enable-oslogin" = local.enable_oslogin } : {}
   )
+
 
 
   allow_stopping_for_update = var.allow_stopping_for_update
@@ -124,5 +134,20 @@ resource "yandex_compute_instance" "this" {
       mode          = filesystem.value.mode
     }
   }
+  lifecycle {
+    precondition {
+      condition     = local.is_oslogin_supported
+      error_message = <<EOT
+      ERROR: OS Login is enabled, but the image '${var.image_family}' is not supported.
+      Supported images: ${join(", ", var.supported_oslogin_images)}
+      EOT
+    }
+  }
+}
+resource "null_resource" "validate_oslogin" {
+  count = local.is_oslogin_supported ? 0 : 1
 
+  provisioner "local-exec" {
+    command = "echo '${local.oslogin_error_message}' && exit 1"
+  }
 }

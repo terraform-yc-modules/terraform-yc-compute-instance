@@ -49,7 +49,7 @@ module "compute_instance" {
     {
       filesystem_id = null
       mode          = "READ_WRITE"
-      zone          = ru-central1-a"
+      zone          = "ru-central1-a"
     }
   ]
 
@@ -77,7 +77,7 @@ module "compute_instance" {
     name        = "my-static-ip"
     description = "Static IP for dev instance"
     external_ipv4_address = {
-      zone_id = Эru-central1-a"
+      zone_id = "ru-central1-a"
     }
   }
 }
