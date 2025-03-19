@@ -111,20 +111,6 @@ variable "image_family" {
   default     = null
 }
 
-variable "supported_oslogin_images" {
-  description = "List of OS images that support OS Login."
-  type        = list(string)
-  default = [
-    "ubuntu-1804-lts-oslogin",
-    "ubuntu-2004-lts-oslogin",
-    "ubuntu-2204-lts-oslogin",
-    "ubuntu-2404-lts-oslogin",
-    "debian-11-oslogin",
-    "centos-7-oslogin",
-    "centos-stream-9-oslogin",
-    "rocky-9-oslogin"
-  ]
-}
 
 
 variable "disk_placement_policy" {
