@@ -12,16 +12,12 @@ module "dev" {
   serial_port_enable        = true
   allow_stopping_for_update = true
   boot_disk = {
-    size        = 93
-    block_size  = 4096
-    type        = "network-ssd"
-    image_id    = null
-    snapshot_id = null
+    size       = 93
+    block_size = 4096
+    type       = "network-ssd"
   }
   enable_oslogin_or_ssh_keys = {
     enable-oslogin = "true"
-    ssh_user       = null
-    ssh_key        = null
   }
 
   network_interfaces = [
@@ -37,7 +33,6 @@ module "dev" {
   }
   secondary_disks = [
     {
-      disk_id     = null
       auto_delete = true
       device_name = "secondary-disk"
       mode        = "READ_WRITE"
@@ -46,7 +41,6 @@ module "dev" {
       type        = "network-hdd"
     },
     {
-      disk_id     = null
       auto_delete = true
       device_name = "third-disk"
       mode        = "READ_WRITE"
@@ -60,14 +54,12 @@ module "dev" {
   ]
   filesystems = [
     {
-      filesystem_id = null
-      mode          = "READ_WRITE"
-      zone          = var.yc_zone
+      mode = "READ_WRITE"
+      zone = var.yc_zone
     },
     {
-      filesystem_id = null
-      mode          = "READ_WRITE"
-      zone          = var.yc_zone
+      mode = "READ_WRITE"
+      zone = var.yc_zone
     }
   ]
 }

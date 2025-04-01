@@ -172,18 +172,27 @@ variable "labels" {
 
 variable "enable_oslogin_or_ssh_keys" {
   description = "Enabling OS Login or adding ssh-keys to metadata of node-groups."
-  type        = map(any)
-  default = {
-    enable-oslogin = "false"
-    ssh_user       = null
-    ssh_key        = null
-  }
+  type        = map(string)
+  default     = {}
+
   validation {
-    condition = contains(["true", "false"], var.enable_oslogin_or_ssh_keys.enable-oslogin) && ((var.enable_oslogin_or_ssh_keys.enable-oslogin == "true" && var.enable_oslogin_or_ssh_keys.ssh_user == null && var.enable_oslogin_or_ssh_keys.ssh_key == null) ||
-    (var.enable_oslogin_or_ssh_keys.enable-oslogin == "false" && var.enable_oslogin_or_ssh_keys.ssh_user != null && var.enable_oslogin_or_ssh_keys.ssh_key != null))
-    error_message = "Either OS Login should be enabled or SSH keys (ssh_user and ssh_key) should be provided."
+    condition = (
+      (contains(keys(var.enable_oslogin_or_ssh_keys), "enable-oslogin") &&
+        lookup(var.enable_oslogin_or_ssh_keys, "enable-oslogin", "false") == "true" &&
+        !contains(keys(var.enable_oslogin_or_ssh_keys), "ssh_user") &&
+      !contains(keys(var.enable_oslogin_or_ssh_keys), "ssh_key"))
+
+      ||
+
+      (!contains(keys(var.enable_oslogin_or_ssh_keys), "enable-oslogin") &&
+        lookup(var.enable_oslogin_or_ssh_keys, "ssh_user", "") != "" &&
+      lookup(var.enable_oslogin_or_ssh_keys, "ssh_key", "") != "")
+    )
+    error_message = "Either provide only enable-oslogin=true, or specify ssh_user and ssh_key without enable-oslogin."
   }
 }
+
+
 variable "custom_metadata" {
   description = <<-EOF
      Adding custom metadata to node-groups.
