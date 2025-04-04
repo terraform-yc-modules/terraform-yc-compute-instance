@@ -18,7 +18,18 @@ output "instance_id" {
   value       = yandex_compute_instance.this[*].id
 }
 
-output "disks_ids" {
-  description = "The list of attached disk IDs"
-  value       = var.secondary_disks != null && length(var.secondary_disks) > 0 ? [for disk in var.secondary_disks : disk.disk_id] : []
+
+output "boot_disk_id" {
+  description = "The ID of the boot disk"
+  value       = yandex_compute_disk.this.id
+}
+
+output "secondary_disk_ids" {
+  description = "The list of secondary disk IDs"
+  value       = [for disk_id, disk in yandex_compute_disk.secondary : disk.id]
+}
+
+output "filesystem_ids" {
+  description = "The list of filesystem IDs"
+  value       = [for fs_id, fs in yandex_compute_filesystem.this : fs.id]
 }

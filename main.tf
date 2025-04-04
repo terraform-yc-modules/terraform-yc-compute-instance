@@ -48,8 +48,6 @@ resource "yandex_compute_instance" "this" {
     local.enable_oslogin == "true" ? { "enable-oslogin" = local.enable_oslogin } : {}
   )
 
-
-
   allow_stopping_for_update = var.allow_stopping_for_update
   network_acceleration_type = var.network_acceleration_type
   gpu_cluster_id            = var.gpu_cluster_id
@@ -128,4 +126,21 @@ resource "yandex_compute_instance" "this" {
       mode          = filesystem.value.mode
     }
   }
+}
+
+# Backup
+data "yandex_backup_policy" "this_backup_policy" {
+  name = var.backup_frequency
+}
+
+resource "yandex_backup_policy_bindings" "this" {
+  count       = var.backup && var.backup_policy_id == null ? 1 : 0
+  instance_id = yandex_compute_instance.this.id
+  policy_id   = data.yandex_backup_policy.this_backup_policy.id
+}
+
+resource "yandex_backup_policy_bindings" "this_backup_binding" {
+  count       = var.backup && var.backup_policy_id != null ? 1 : 0
+  instance_id = yandex_compute_instance.this.id
+  policy_id   = var.backup_policy_id
 }

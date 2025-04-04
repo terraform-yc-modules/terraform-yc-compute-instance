@@ -1,16 +1,16 @@
 variable "name" {
-  description = "Resource name."
+  description = "Resource name. Required parameter."
   type        = string
 }
 
 variable "platform_id" {
-  description = "The type of virtual machine to create. The default is 'standard-v1'."
+  description = "The type of virtual machine to create. Actual available options: https://yandex.cloud/ru/docs/compute/concepts/vm-platforms."
   type        = string
   default     = "standard-v3"
 }
 
 variable "zone" {
-  description = "The availability zone where the virtual machine will be created. If it is not provided, the default provider folder is used."
+  description = "The availability zone where the virtual machine will be created. If it is not provided, the default provider zone is used."
   type        = string
 }
 
@@ -52,7 +52,33 @@ variable "hostname" {
 
 
 variable "network_interfaces" {
-  description = "List of network interfaces"
+  description = <<-EOT
+    List of network interfaces for the instance. At least one network interface must be specified.
+    
+    Example with NAT:
+    ```
+    network_interfaces = [
+      {
+        subnet_id = "your-subnet-id"
+        nat       = true
+      }
+    ]
+    ```
+    
+    Example with multiple interfaces:
+    ```
+    network_interfaces = [
+      {
+        subnet_id = "your-subnet-id-1"
+        nat       = true
+      },
+      {
+        subnet_id = "your-subnet-id-2"
+        nat       = false
+      }
+    ]
+    ```
+  EOT
   type = list(object({
     subnet_id          = string
     index              = optional(number)
@@ -68,18 +94,12 @@ variable "network_interfaces" {
       ptr         = optional(bool, false)
     })), [])
   }))
-  default = [
-    {
-      subnet_id          = null
-      index              = null
-      ipv4               = true
-      ip_address         = null
-      nat                = false
-      nat_ip_address     = null
-      security_group_ids = null
-      dns_record         = []
-    }
-  ]
+  default = []
+
+  validation {
+    condition     = length(var.network_interfaces) > 0
+    error_message = "At least one network interface must be specified."
+  }
 }
 variable "static_ip" {
   description = "Configuration for static IP address"
@@ -111,14 +131,13 @@ variable "image_family" {
   default     = null
 }
 
+variable "disk_placement_group_id" {
+  description = <<-EOT
+    Disk placement policy configuration. Used when disk type is network-ssd-nonreplicated.
 
-
-variable "disk_placement_policy" {
-  description = "Disk placement policy configuration"
-  type = object({
-    disk_placement_group_id = string
-  })
-  default = null
+  EOT
+  type        = string
+  default     = null
 }
 
 variable "folder_id" {
@@ -128,7 +147,7 @@ variable "folder_id" {
 }
 
 variable "boot_disk" {
-  description = "Configuration for the boot disk"
+  description = "Configuration for the boot disk. If not specified, a disk will be created with default parameters."
   type = object({
     auto_delete = optional(bool, true)
     device_name = optional(string, "boot-disk")
@@ -136,7 +155,7 @@ variable "boot_disk" {
     disk_id     = optional(string, null)
     size        = optional(number, 30)
     block_size  = optional(number, 4096)
-    type        = optional(string, "network-hdd")
+    type        = optional(string, "network-ssd")
     image_id    = optional(string, null)
     snapshot_id = optional(string, null)
   })
@@ -171,24 +190,46 @@ variable "labels" {
 }
 
 variable "enable_oslogin_or_ssh_keys" {
-  description = "Enabling OS Login or adding ssh-keys to metadata of node-groups."
-  type        = map(string)
-  default     = {}
+  description = <<-EOT
+    Authentication configuration for the instance. You can either:
+    1. Enable OS Login by setting enable-oslogin = "true"
+    2. Provide SSH keys by setting ssh_user and ssh_key
+    
+    Example for OS Login:
+    ```
+    enable_oslogin_or_ssh_keys = {
+      enable-oslogin = "true"
+    }
+    ```
+    
+    Example for SSH keys:
+    ```
+    enable_oslogin_or_ssh_keys = {
+      ssh_user = "username"
+      ssh_key  = "~/.ssh/id_rsa.pub"
+    }
+    ```
+  EOT
+  type = object({
+    enable-oslogin = optional(string, "false")
+    ssh_user       = optional(string)
+    ssh_key        = optional(string)
+  })
+  default = {}
 
   validation {
     condition = (
-      (contains(keys(var.enable_oslogin_or_ssh_keys), "enable-oslogin") &&
-        lookup(var.enable_oslogin_or_ssh_keys, "enable-oslogin", "false") == "true" &&
-        !contains(keys(var.enable_oslogin_or_ssh_keys), "ssh_user") &&
-      !contains(keys(var.enable_oslogin_or_ssh_keys), "ssh_key"))
+      (var.enable_oslogin_or_ssh_keys.enable-oslogin == "true" &&
+        var.enable_oslogin_or_ssh_keys.ssh_user == null &&
+      var.enable_oslogin_or_ssh_keys.ssh_key == null)
 
       ||
 
-      (!contains(keys(var.enable_oslogin_or_ssh_keys), "enable-oslogin") &&
-        lookup(var.enable_oslogin_or_ssh_keys, "ssh_user", "") != "" &&
-      lookup(var.enable_oslogin_or_ssh_keys, "ssh_key", "") != "")
+      (var.enable_oslogin_or_ssh_keys.enable-oslogin == "false" &&
+        var.enable_oslogin_or_ssh_keys.ssh_user != null &&
+      var.enable_oslogin_or_ssh_keys.ssh_key != null)
     )
-    error_message = "Either provide only enable-oslogin=true, or specify ssh_user and ssh_key without enable-oslogin."
+    error_message = "Either provide only enable-oslogin=true, or specify both ssh_user and ssh_key without enable-oslogin."
   }
 }
 
@@ -248,19 +289,32 @@ variable "scheduling_policy_preemptible" {
 }
 
 variable "placement_policy" {
-  description = "Placement policy configuration"
+  description = <<-EOT
+    Placement policy configuration for the instance. Controls how the instance is placed within dedicated host groups.
+    
+    Example:
+    ```
+    placement_policy = {
+      placement_group_id = "your-placement-group-id"
+      host_affinity_rules = [
+        {
+          key    = "host"
+          op     = "IN"
+          values = ["host-1", "host-2"]
+        }
+      ]
+    }
+    ```
+  EOT
   type = object({
-    placement_group_id = string
-    host_affinity_rules = list(object({
+    placement_group_id = optional(string)
+    host_affinity_rules = optional(list(object({
       key    = string
       op     = string
       values = list(string)
-    }))
+    })), [])
   })
-  default = {
-    placement_group_id  = null
-    host_affinity_rules = []
-  }
+  default = {}
 }
 
 
@@ -271,7 +325,12 @@ variable "service_account_id" {
 }
 
 variable "monitoring" {
-  description = "Flag to create a new service account if service_account_id is not provided. UI will't show checkbox 'Monitoring enabled' but will works"
+  description = <<-EOT
+    Enable Yandex Cloud monitoring agent on the instance. If enabled and service_account_id is not provided,
+    a new service account with monitoring.editor role will be created.
+    
+    Note: The UI won't show the 'Monitoring enabled' checkbox, but monitoring will work.
+  EOT
   type        = bool
   default     = false
 }
@@ -282,13 +341,6 @@ resource "random_string" "unique_id" {
   lower   = true
   numeric = true
   special = false
-}
-
-
-variable "backup" {
-  description = "Flag to create a new service account if service_account_id is not provided"
-  type        = bool
-  default     = false
 }
 
 variable "filesystems" {
@@ -315,7 +367,7 @@ variable "secondary_disks" {
     auto_delete = optional(bool, true)
     device_name = optional(string, "secondary-disk")
     mode        = optional(string, "READ_WRITE")
-    size        = optional(number, 100)
+    size        = optional(number, 50)
     block_size  = optional(number, 4096)
     type        = optional(string, "network-hdd")
     description = optional(string, "Secondary disk")
@@ -323,8 +375,29 @@ variable "secondary_disks" {
   default = []
 }
 
+variable "backup" {
+  description = <<-EOT
+    Enable Yandex Cloud backup for the instance. If enabled and service_account_id is not provided,
+    a new service account with backup.editor role will be created.
+    Use backup_policy_id to specify backup policy OR backup_frequency to specify backup frequency from default policies.
+  EOT
+  type        = bool
+  default     = false
+}
+
+variable "backup_policy_id" {
+  description = "ID of the backup policy to use for creating the backup. If not specified, the default backup frequency will be used."
+  type        = string
+  default     = null
+}
+
 variable "backup_frequency" {
-  description = "Timing of backups: Default daily,  Default weekly, Default monthly"
+  description = "Timing of backups. Available options: 'Default daily', 'Default weekly', 'Default monthly'."
   type        = string
   default     = "Default daily"
+
+  validation {
+    condition     = contains(["Default daily", "Default weekly", "Default monthly"], var.backup_frequency)
+    error_message = "Allowed values for backup_frequency are: 'Default daily', 'Default weekly', 'Default monthly'."
+  }
 }
