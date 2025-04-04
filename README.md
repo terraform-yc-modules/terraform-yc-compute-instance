@@ -106,14 +106,14 @@ module "compute_instance" {
 | <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | >= 3.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | > 3.3 |
-| <a name="requirement_yandex"></a> [yandex](#requirement\_yandex) | = 0.130.0 |
+| <a name="requirement_yandex"></a> [yandex](#requirement\_yandex) | = 0.136.0 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_random"></a> [random](#provider\_random) | 3.7.1 |
-| <a name="provider_yandex"></a> [yandex](#provider\_yandex) | 0.130.0 |
+| <a name="provider_yandex"></a> [yandex](#provider\_yandex) | 0.136.0 |
 
 ## Modules
 
@@ -124,19 +124,19 @@ No modules.
 | Name | Type |
 |------|------|
 | [random_string.unique_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
-| [yandex_backup_policy_bindings.this](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/resources/backup_policy_bindings) | resource |
-| [yandex_backup_policy_bindings.this_backup_binding](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/resources/backup_policy_bindings) | resource |
-| [yandex_compute_disk.secondary](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/resources/compute_disk) | resource |
-| [yandex_compute_disk.this](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/resources/compute_disk) | resource |
-| [yandex_compute_filesystem.this](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/resources/compute_filesystem) | resource |
-| [yandex_compute_instance.this](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/resources/compute_instance) | resource |
-| [yandex_iam_service_account.sa_instance](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/resources/iam_service_account) | resource |
-| [yandex_resourcemanager_folder_iam_member.sa_backup](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/resources/resourcemanager_folder_iam_member) | resource |
-| [yandex_resourcemanager_folder_iam_member.sa_monitoring](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/resources/resourcemanager_folder_iam_member) | resource |
-| [yandex_vpc_address.static_ip](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/resources/vpc_address) | resource |
-| [yandex_backup_policy.this_backup_policy](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/data-sources/backup_policy) | data source |
-| [yandex_client_config.client](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/data-sources/client_config) | data source |
-| [yandex_compute_image.image](https://registry.terraform.io/providers/yandex-cloud/yandex/0.130.0/docs/data-sources/compute_image) | data source |
+| [yandex_backup_policy_bindings.this](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/resources/backup_policy_bindings) | resource |
+| [yandex_backup_policy_bindings.this_backup_binding](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/resources/backup_policy_bindings) | resource |
+| [yandex_compute_disk.secondary](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/resources/compute_disk) | resource |
+| [yandex_compute_disk.this](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/resources/compute_disk) | resource |
+| [yandex_compute_filesystem.this](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/resources/compute_filesystem) | resource |
+| [yandex_compute_instance.this](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/resources/compute_instance) | resource |
+| [yandex_iam_service_account.sa_instance](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/resources/iam_service_account) | resource |
+| [yandex_resourcemanager_folder_iam_member.sa_backup](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/resources/resourcemanager_folder_iam_member) | resource |
+| [yandex_resourcemanager_folder_iam_member.sa_monitoring](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/resources/resourcemanager_folder_iam_member) | resource |
+| [yandex_vpc_address.static_ip](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/resources/vpc_address) | resource |
+| [yandex_backup_policy.this_backup_policy](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/data-sources/backup_policy) | data source |
+| [yandex_client_config.client](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/data-sources/client_config) | data source |
+| [yandex_compute_image.image](https://registry.terraform.io/providers/yandex-cloud/yandex/0.136.0/docs/data-sources/compute_image) | data source |
 
 ## Inputs
 
@@ -146,7 +146,7 @@ No modules.
 | <a name="input_backup"></a> [backup](#input\_backup) | Enable Yandex Cloud backup for the instance. If enabled and service\_account\_id is not provided,<br/>a new service account with backup.editor role will be created.<br/>Use backup\_policy\_id to specify backup policy OR backup\_frequency to specify backup frequency from default policies. | `bool` | `false` | no |
 | <a name="input_backup_frequency"></a> [backup\_frequency](#input\_backup\_frequency) | Timing of backups. Available options: 'Default daily', 'Default weekly', 'Default monthly'. | `string` | `"Default daily"` | no |
 | <a name="input_backup_policy_id"></a> [backup\_policy\_id](#input\_backup\_policy\_id) | ID of the backup policy to use for creating the backup. If not specified, the default backup frequency will be used. | `string` | `null` | no |
-| <a name="input_boot_disk"></a> [boot\_disk](#input\_boot\_disk) | Configuration for the boot disk. If not specified, a disk will be created with default parameters. | <pre>object({<br/>    auto_delete = optional(bool, true)<br/>    device_name = optional(string, "boot-disk")<br/>    mode        = optional(string, "READ_WRITE")<br/>    disk_id     = optional(string, null)<br/>    size        = optional(number, 30)<br/>    block_size  = optional(number, 4096)<br/>    type        = optional(string, "network-ssd")<br/>    image_id    = optional(string, null)<br/>    snapshot_id = optional(string, null)<br/>  })</pre> | `{}` | no |
+| <a name="input_boot_disk"></a> [boot\_disk](#input\_boot\_disk) | Configuration for the boot disk. If not specified, a disk will be created with default parameters. | <pre>object({<br/>    auto_delete = optional(bool, true)<br/>    device_name = optional(string, "boot-disk")<br/>    mode        = optional(string, "READ_WRITE")<br/>    disk_id     = optional(string, null)<br/>    size        = optional(number, 30)<br/>    block_size  = optional(number, 4096)<br/>    type        = optional(string, "network-ssd")<br/>    image_id    = optional(string, null)<br/>    snapshot_id = optional(string, null)<br/>    kms_key_id  = optional(string, null)<br/>  })</pre> | `{}` | no |
 | <a name="input_core_fraction"></a> [core\_fraction](#input\_core\_fraction) | CPU core fraction | `number` | `100` | no |
 | <a name="input_cores"></a> [cores](#input\_cores) | Number of CPU cores | `number` | `2` | no |
 | <a name="input_custom_metadata"></a> [custom\_metadata](#input\_custom\_metadata) | Adding custom metadata to node-groups.<br/>Example:<pre>custom_metadata = {<br/>  foo = "bar"<br/>}</pre> | `map(any)` | `{}` | no |
@@ -170,7 +170,7 @@ No modules.
 | <a name="input_placement_policy"></a> [placement\_policy](#input\_placement\_policy) | Placement policy configuration for the instance. Controls how the instance is placed within dedicated host groups.<br/><br/>Example:<pre>placement_policy = {<br/>  placement_group_id = "your-placement-group-id"<br/>  host_affinity_rules = [<br/>    {<br/>      key    = "host"<br/>      op     = "IN"<br/>      values = ["host-1", "host-2"]<br/>    }<br/>  ]<br/>}</pre> | <pre>object({<br/>    placement_group_id = optional(string)<br/>    host_affinity_rules = optional(list(object({<br/>      key    = string<br/>      op     = string<br/>      values = list(string)<br/>    })), [])<br/>  })</pre> | `{}` | no |
 | <a name="input_platform_id"></a> [platform\_id](#input\_platform\_id) | The type of virtual machine to create. Actual available options: https://yandex.cloud/ru/docs/compute/concepts/vm-platforms. | `string` | `"standard-v3"` | no |
 | <a name="input_scheduling_policy_preemptible"></a> [scheduling\_policy\_preemptible](#input\_scheduling\_policy\_preemptible) | Specifies if the instance is preemptible. Defaults to false. | `bool` | `false` | no |
-| <a name="input_secondary_disks"></a> [secondary\_disks](#input\_secondary\_disks) | List of secondary disks | <pre>list(object({<br/>    index       = optional(number)<br/>    disk_id     = optional(string)<br/>    auto_delete = optional(bool, true)<br/>    device_name = optional(string, "secondary-disk")<br/>    mode        = optional(string, "READ_WRITE")<br/>    size        = optional(number, 50)<br/>    block_size  = optional(number, 4096)<br/>    type        = optional(string, "network-hdd")<br/>    description = optional(string, "Secondary disk")<br/>  }))</pre> | `[]` | no |
+| <a name="input_secondary_disks"></a> [secondary\_disks](#input\_secondary\_disks) | List of secondary disks | <pre>list(object({<br/>    index       = optional(number)<br/>    disk_id     = optional(string)<br/>    auto_delete = optional(bool, true)<br/>    device_name = optional(string, "secondary-disk")<br/>    mode        = optional(string, "READ_WRITE")<br/>    size        = optional(number, 50)<br/>    block_size  = optional(number, 4096)<br/>    type        = optional(string, "network-hdd")<br/>    description = optional(string, "Secondary disk")<br/>    kms_key_id  = optional(string, null)<br/>  }))</pre> | `[]` | no |
 | <a name="input_serial_port_enable"></a> [serial\_port\_enable](#input\_serial\_port\_enable) | Enable serial port | `bool` | `false` | no |
 | <a name="input_service_account_id"></a> [service\_account\_id](#input\_service\_account\_id) | Optional service account ID | `string` | `null` | no |
 | <a name="input_static_ip"></a> [static\_ip](#input\_static\_ip) | Configuration for static IP address | <pre>object({<br/>    description         = optional(string)<br/>    folder_id           = optional(string)<br/>    labels              = optional(map(string))<br/>    deletion_protection = optional(bool)<br/>    external_ipv4_address = optional(object({<br/>      zone_id                  = string<br/>      ddos_protection_provider = optional(string)<br/>      outgoing_smtp_capability = optional(string)<br/>    }))<br/>    dns_record = optional(object({<br/>      fqdn        = string<br/>      dns_zone_id = string<br/>      ttl         = optional(number)<br/>      ptr         = optional(bool)<br/>    }))<br/>  })</pre> | `null` | no |

@@ -158,6 +158,7 @@ variable "boot_disk" {
     type        = optional(string, "network-ssd")
     image_id    = optional(string, null)
     snapshot_id = optional(string, null)
+    kms_key_id  = optional(string, null)
   })
   default = {}
 
@@ -371,6 +372,7 @@ variable "secondary_disks" {
     block_size  = optional(number, 4096)
     type        = optional(string, "network-hdd")
     description = optional(string, "Secondary disk")
+    kms_key_id  = optional(string, null)
   }))
   default = []
 }

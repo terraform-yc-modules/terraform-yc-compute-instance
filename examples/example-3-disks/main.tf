@@ -15,6 +15,7 @@ module "dev" {
     size       = 93
     block_size = 4096
     type       = "network-ssd"
+    kms_key_id = yandex_kms_symmetric_key.this.id
   }
   enable_oslogin_or_ssh_keys = {
     enable-oslogin = "true"
@@ -39,6 +40,7 @@ module "dev" {
       size        = 100
       block_size  = 4096
       type        = "network-hdd"
+      kms_key_id  = yandex_kms_symmetric_key.this.id
     },
     {
       auto_delete = true
@@ -65,4 +67,9 @@ resource "yandex_compute_disk_placement_group" "dev" {
   name        = "dev-placement-group"
   description = "Placement group for network-ssd-nonreplicated disks"
   zone        = var.yc_zone
+}
+
+resource "yandex_kms_symmetric_key" "this" {
+  name        = "dev-kms-key"
+  description = "KMS key for disks"
 }

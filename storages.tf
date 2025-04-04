@@ -9,7 +9,7 @@ resource "yandex_compute_disk" "this" {
   image_id    = lookup(var.boot_disk, "image_id", null) != null ? lookup(var.boot_disk, "image_id", null) : (var.image_family != null ? data.yandex_compute_image.image[0].id : null)
   snapshot_id = lookup(var.boot_disk, "snapshot_id", null)
   labels      = var.labels != null ? var.labels : null
-
+  kms_key_id  = lookup(var.boot_disk, "kms_key_id", null)
   dynamic "disk_placement_policy" {
     for_each = lookup(var.boot_disk, "type", null) == "network-ssd-nonreplicated" && var.disk_placement_group_id != null ? [var.disk_placement_group_id] : []
     content {
@@ -28,6 +28,7 @@ resource "yandex_compute_disk" "secondary" {
   block_size  = lookup(each.value, "block_size", null)
   type        = lookup(each.value, "type", null)
   labels      = var.labels != null ? var.labels : null
+  kms_key_id  = lookup(each.value, "kms_key_id", null)
   dynamic "disk_placement_policy" {
     for_each = lookup(each.value, "type", null) == "network-ssd-nonreplicated" && var.disk_placement_group_id != null ? [var.disk_placement_group_id] : []
     content {
