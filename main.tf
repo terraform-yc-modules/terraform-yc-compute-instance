@@ -39,11 +39,15 @@ resource "yandex_compute_instance" "this" {
           var.monitoring ? "  - wget -O - https://monitoring.api.cloud.yandex.net/monitoring/v2/unifiedAgent/config/install.sh | bash" : null
         ]))
       )
-    } : {},
-    local.enable_oslogin == "true" ? {
-      "enable-oslogin" = local.enable_oslogin
-    } : {}
+      } : {
+      "user-data" = local.ssh_key != null ? format("#cloud-config\nusers:\n  - name: %s\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - %s",
+        local.ssh_user != null ? local.ssh_user : "default_user",
+        file(local.ssh_key)
+      ) : ""
+    },
+    local.enable_oslogin == "true" ? { "enable-oslogin" = local.enable_oslogin } : {}
   )
+
 
 
   allow_stopping_for_update = var.allow_stopping_for_update
@@ -124,5 +128,4 @@ resource "yandex_compute_instance" "this" {
       mode          = filesystem.value.mode
     }
   }
-
 }

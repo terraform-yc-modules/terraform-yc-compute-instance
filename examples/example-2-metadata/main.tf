@@ -11,19 +11,17 @@ module "dev" {
   core_fraction             = 100
   serial_port_enable        = true
   allow_stopping_for_update = true
-  monitoring                = true
-  backup                    = true
+  monitoring                = false
+  backup                    = false
   boot_disk = {
-    size        = 30
-    block_size  = 4096
-    type        = "network-ssd"
-    image_id    = null
-    snapshot_id = null
+    size       = 30
+    block_size = 4096
+    type       = "network-ssd"
+
   }
   enable_oslogin_or_ssh_keys = {
-    enable-oslogin = "false"
-    ssh_user       = "devops"
-    ssh_key        = "~/.ssh/id_rsa.pub"
+    ssh_user = "devops"
+    ssh_key  = "~/.ssh/id_rsa.pub"
   }
   network_interfaces = [
     {
