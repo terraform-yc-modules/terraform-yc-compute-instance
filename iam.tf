@@ -24,13 +24,3 @@ resource "yandex_resourcemanager_folder_iam_member" "sa_backup" {
   role      = "backup.editor"
   member    = "serviceAccount:${yandex_iam_service_account.sa_instance[0].id}"
 }
-
-data "yandex_backup_policy" "this_backup_policy" {
-  name = var.backup_frequency
-}
-
-resource "yandex_backup_policy_bindings" "this_backup_binding" {
-  count       = var.backup ? 1 : 0
-  instance_id = yandex_compute_instance.this.id
-  policy_id   = data.yandex_backup_policy.this_backup_policy.id
-}

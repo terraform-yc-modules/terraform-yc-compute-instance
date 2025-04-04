@@ -2,17 +2,16 @@ module "dev" {
   source                    = "../../"
   image_family              = "ubuntu-2204-lts"
   zone                      = var.yc_zone
-  name                      = "dev"
-  hostname                  = "dev"
-  description               = "dev"
+  name                      = "dev-2"
+  hostname                  = "dev-2"
+  description               = "dev-2"
   memory                    = 4
   gpus                      = 0
   cores                     = 2
   core_fraction             = 100
   serial_port_enable        = true
   allow_stopping_for_update = true
-  monitoring                = false
-  backup                    = false
+
   boot_disk = {
     size       = 30
     block_size = 4096
