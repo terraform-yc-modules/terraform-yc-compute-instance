@@ -4,7 +4,7 @@ variable "name" {
 }
 
 variable "platform_id" {
-  description = "The type of virtual machine to create. Actual available options: https://yandex.cloud/ru/docs/compute/concepts/vm-platforms."
+  description = "The type of compute platform. Actual available options: https://yandex.cloud/ru/docs/compute/concepts/vm-platforms."
   type        = string
   default     = "standard-v3"
 }
@@ -27,7 +27,7 @@ variable "memory" {
 }
 
 variable "gpus" {
-  description = "Number of GPUs"
+  description = "Number of GPUs. Use variable 'platform_id' with GPUs support. Actual available options: https://yandex.cloud/ru/docs/compute/concepts/vm-platforms#gpu-platforms."
   type        = number
   default     = 0
 }
