@@ -2,9 +2,9 @@ module "dev" {
   source                    = "../../"
   image_family              = "ubuntu-2204-lts-oslogin"
   zone                      = var.yc_zone
-  name                      = "dev"
-  hostname                  = "dev"
-  description               = "dev"
+  name                      = "dev-1"
+  hostname                  = "dev-1"
+  description               = "dev-1"
   memory                    = 8
   gpus                      = 0
   cores                     = 4
