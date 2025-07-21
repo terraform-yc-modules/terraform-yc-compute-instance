@@ -394,12 +394,7 @@ variable "backup_policy_id" {
 }
 
 variable "backup_frequency" {
-  description = "Timing of backups. Available options: 'Default daily', 'Default weekly', 'Default monthly'."
+  description = "Name of the backup policy. Can be 'Default daily', 'Default weekly', 'Default monthly' or custom policy name."
   type        = string
   default     = "Default daily"
-
-  validation {
-    condition     = contains(["Default daily", "Default weekly", "Default monthly"], var.backup_frequency)
-    error_message = "Allowed values for backup_frequency are: 'Default daily', 'Default weekly', 'Default monthly'."
-  }
 }
