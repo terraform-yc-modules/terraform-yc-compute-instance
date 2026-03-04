@@ -73,7 +73,7 @@ resource "yandex_compute_instance" "this" {
       ipv4           = lookup(network_interface.value, "ipv4", false)
       ip_address     = lookup(network_interface.value, "ip_address", null)
       nat            = lookup(network_interface.value, "nat", false)
-      nat_ip_address = lookup(network_interface.value, "nat", false) && var.static_ip != null ? yandex_vpc_address.static_ip[0].external_ipv4_address[0].address : null
+      nat_ip_address = lookup(network_interface.value, "nat", false) ? lookup(network_interface.value, "nat_ip_address", var.static_ip != null ? yandex_vpc_address.static_ip[0].external_ipv4_address[0].address : null) : null
 
       security_group_ids = lookup(network_interface.value, "security_group_ids", null)
 
