@@ -5,9 +5,9 @@ module "dev" {
   name                      = format("%sdev-1", var.name_prefix == null ? "" : var.name_prefix)
   hostname                  = format("%sdev-1", var.name_prefix == null ? "" : var.name_prefix)
   description               = "dev-1"
-  memory                    = 8
+  memory                    = var.memory
   gpus                      = 0
-  cores                     = 4
+  cores                     = var.cores
   core_fraction             = 100
   serial_port_enable        = true
   allow_stopping_for_update = true
@@ -19,7 +19,7 @@ module "dev" {
     aws_v2_http_token    = 2
   }
   boot_disk = {
-    size       = 30
+    size       = var.boot_disk_size
     block_size = 4096
     type       = "network-ssd"
   }
@@ -28,7 +28,7 @@ module "dev" {
       auto_delete = true
       device_name = "secondary-disk"
       mode        = "READ_WRITE"
-      size        = 100
+      size        = var.secondary_disk_size
       block_size  = 4096
       type        = "network-hdd"
     }

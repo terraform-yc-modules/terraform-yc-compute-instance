@@ -9,7 +9,7 @@
 - **Filesystem**: Attach a Yandex.Cloud Filesystem to the instance.
 - **Monitoring and Backup**: Enable monitoring and backup services using Yandex.Cloud's predefined scripts.
 
-The module implementation is compatible with Yandex provider `>= 0.216.0`; provider `0.225.0` is the tested release for the examples and cloud verification. `local_disks` and `reserved_instance_pool_id` are opt-in but are not enabled in the comprehensive example because their availability depends on the account's allocated capacity. IPv6/DNS records and placement partitions are also opt-in and require a compatible network or placement group.
+The module implementation is compatible with Yandex provider `>= 0.216.0`; provider `0.225.0` is pinned and tested for local example validation, and selected for future cloud verification. `local_disks` and `reserved_instance_pool_id` are opt-in but are not enabled in the comprehensive example because their availability depends on the account's allocated capacity. IPv6/DNS records and placement partitions are also opt-in and require a compatible network or placement group.
 
 ## Usage
 
