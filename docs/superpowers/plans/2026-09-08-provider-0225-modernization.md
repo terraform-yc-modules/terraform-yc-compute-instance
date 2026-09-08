@@ -14,7 +14,7 @@
 
 - Preserve all existing inputs, defaults, resource addresses, `for_each` keys, and state ownership.
 - New provider capabilities must be opt-in.
-- Keep the reusable module provider constraint at `>= 0.136.0`; select 0.225.0 only in disposable verification configuration.
+- Set the reusable module provider minimum to the earliest release that validates every referenced schema field; verify `>= 0.216.0` as the candidate floor. Select 0.225.0 for comprehensive and cloud verification.
 - Do not add Terraform test files or commit `.terraform.lock.hcl`.
 - Do not apply, destroy, push, or create a PR from an implementation-agent task.
 
@@ -49,11 +49,11 @@ Pass `allow_recreate` and generate the provider `hardware_generation` block for 
 
 - [ ] **Step 5: Verify module syntax and compatibility**
 
-Run `terraform fmt -check -recursive`, `terraform validate` after initialization is available, and `git diff --check`. Inspect the diff specifically for changed defaults, changed resource labels, or changed collection identities.
+Raise the root `versions.tf` provider minimum to the earliest release supporting every static field, with `0.216.0` as the candidate. Run isolated validation at that exact floor and at 0.225.0, plus `terraform fmt -check -recursive` and `git diff --check`. Inspect the diff specifically for changed defaults, changed resource labels, or changed collection identities.
 
 - [ ] **Step 6: Commit the focused implementation**
 
-Commit only `variables.tf`, `main.tf`, and `storages.tf` with message `feat: expose current compute instance capabilities`.
+Commit the implementation files and `versions.tf` with message `feat: expose current compute instance capabilities`.
 
 ### Task 2: Update comprehensive example and documentation
 

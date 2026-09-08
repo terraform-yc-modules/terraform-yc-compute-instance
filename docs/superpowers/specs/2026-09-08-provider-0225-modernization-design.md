@@ -10,7 +10,7 @@ Modernize the compute-instance module against Yandex Provider 0.225.0 while pres
 - Keep all existing public inputs and defaults compatible.
 - Keep every existing resource and data-source address unchanged.
 - Make every newly exposed capability opt-in.
-- Do not introduce a provider upper bound or commit a lock file.
+- Raise the provider minimum to the earliest release that supports every statically referenced schema field; verify `0.216.0` as the candidate floor. Do not introduce an upper bound or commit a lock file.
 - Do not add Terraform test files.
 
 ## Module changes
@@ -32,7 +32,7 @@ Do not add `internal_ipv4_address` to the existing `static_ip` input: that objec
 
 ## Provider and state considerations
 
-The minimum provider constraint remains `>= 0.136.0`; validation and cloud smoke testing select 0.225.0 explicitly in the disposable test configuration. This preserves consumers' existing constraint resolution while documenting the current tested release.
+Terraform validates resource arguments and dynamic-block content against the selected provider schema even when their runtime values are null or their `for_each` collections are empty. The module therefore cannot retain `>= 0.136.0` while statically referencing fields introduced later. Set the minimum to the earliest release that validates the complete module, expected to be `>= 0.216.0` because `reserved_instance_pool_id` was introduced there, and prove that boundary directly. Cloud smoke testing selects 0.225.0 explicitly in the disposable test configuration.
 
 The provider migrated `yandex_compute_filesystem` to Terraform Plugin Framework and includes a state upgrader. The module retains `yandex_compute_filesystem.this` and its `for_each` keys unchanged, so no module-level `moved` block or state command is required.
 
