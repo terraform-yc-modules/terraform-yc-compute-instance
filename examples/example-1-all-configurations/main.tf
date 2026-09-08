@@ -2,8 +2,8 @@ module "dev" {
   source                    = "../../"
   image_family              = "ubuntu-2204-lts-oslogin"
   zone                      = var.yc_zone
-  name                      = "dev-1"
-  hostname                  = "dev-1"
+  name                      = format("%sdev-1", var.name_prefix == null ? "" : var.name_prefix)
+  hostname                  = format("%sdev-1", var.name_prefix == null ? "" : var.name_prefix)
   description               = "dev-1"
   memory                    = 8
   gpus                      = 0
@@ -11,8 +11,13 @@ module "dev" {
   core_fraction             = 100
   serial_port_enable        = true
   allow_stopping_for_update = true
+  allow_recreate            = true
   monitoring                = true
   backup                    = true
+  metadata_options = {
+    aws_v2_http_endpoint = 2
+    aws_v2_http_token    = 2
+  }
   boot_disk = {
     size       = 30
     block_size = 4096
