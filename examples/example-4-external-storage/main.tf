@@ -35,12 +35,14 @@ module "this" {
 
   boot_disk = {
     disk_id     = yandex_compute_disk.external_boot.id
+    create      = false
     auto_delete = false
   }
 
   secondary_disks = [
     {
       disk_id     = yandex_compute_disk.external_secondary.id
+      create      = false
       auto_delete = false
       device_name = "external-secondary"
     },
@@ -54,6 +56,7 @@ module "this" {
   filesystems = [
     {
       filesystem_id = yandex_compute_filesystem.external.id
+      create        = false
       device_name   = "external-filesystem"
     },
     {

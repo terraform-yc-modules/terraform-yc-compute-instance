@@ -159,8 +159,9 @@ variable "folder_id" {
 }
 
 variable "boot_disk" {
-  description = "Configuration for the boot disk. If disk_id is null, the module creates a disk; otherwise it attaches the supplied disk without creating a duplicate."
+  description = "Configuration for the boot disk. The module creates a disk when create is true and disk_id is null; otherwise it attaches the supplied disk without creating a duplicate. Set create=false when disk_id is supplied by a resource whose ID is unknown during plan."
   type = object({
+    create      = optional(bool, true)
     auto_delete = optional(bool, true)
     device_name = optional(string, "boot-disk")
     mode        = optional(string, "READ_WRITE")
@@ -389,8 +390,9 @@ resource "random_string" "unique_id" {
 }
 
 variable "filesystems" {
-  description = "List of filesystems that are attached to the instance."
+  description = "List of filesystems that are attached to the instance. Set create=false for a supplied filesystem_id that is unknown during plan."
   type = list(object({
+    create        = optional(bool, true)
     filesystem_id = optional(string, null)
     device_name   = optional(string, null)
     mode          = optional(string, "READ_WRITE")
@@ -405,8 +407,9 @@ variable "filesystems" {
 
 
 variable "secondary_disks" {
-  description = "List of secondary disks"
+  description = "List of secondary disks. Set create=false for a supplied disk_id that is unknown during plan."
   type = list(object({
+    create      = optional(bool, true)
     index       = optional(number)
     disk_id     = optional(string)
     auto_delete = optional(bool, true)

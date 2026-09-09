@@ -1,5 +1,5 @@
 resource "yandex_compute_disk" "this" {
-  count          = var.boot_disk.disk_id == null ? 1 : 0
+  count          = var.boot_disk.create ? (var.boot_disk.disk_id == null ? 1 : 0) : 0
   name           = var.name
   description    = var.description
   folder_id      = local.folder_id
@@ -20,7 +20,7 @@ resource "yandex_compute_disk" "this" {
 }
 
 resource "yandex_compute_disk" "secondary" {
-  for_each       = { for idx, disk in var.secondary_disks : idx => disk if disk.disk_id == null }
+  for_each       = { for idx, disk in var.secondary_disks : idx => disk if disk.create ? disk.disk_id == null : false }
   name           = format("%s-secondary-disk-%d", var.name, each.key + 1)
   description    = lookup(each.value, "description", null)
   folder_id      = local.folder_id
@@ -40,7 +40,7 @@ resource "yandex_compute_disk" "secondary" {
 
 
 resource "yandex_compute_filesystem" "this" {
-  for_each    = { for idx, filesystem in var.filesystems : idx => filesystem if filesystem.filesystem_id == null }
+  for_each    = { for idx, filesystem in var.filesystems : idx => filesystem if filesystem.create ? filesystem.filesystem_id == null : false }
   name        = format("%s-filesystem-%d", var.name, each.key + 1)
   description = lookup(each.value, "description", null)
   folder_id   = local.folder_id
