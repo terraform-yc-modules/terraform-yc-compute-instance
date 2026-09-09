@@ -84,10 +84,24 @@ variable "network_interfaces" {
     index              = optional(number)
     ipv4               = optional(bool, true)
     ip_address         = optional(string)
+    ipv6               = optional(bool)
+    ipv6_address       = optional(string)
     nat                = optional(bool, false)
     nat_ip_address     = optional(string)
     security_group_ids = optional(list(string))
     dns_record = optional(list(object({
+      fqdn        = string
+      dns_zone_id = optional(string)
+      ttl         = optional(number)
+      ptr         = optional(bool, false)
+    })), [])
+    ipv6_dns_record = optional(list(object({
+      fqdn        = string
+      dns_zone_id = optional(string)
+      ttl         = optional(number)
+      ptr         = optional(bool, false)
+    })), [])
+    nat_dns_record = optional(list(object({
       fqdn        = string
       dns_zone_id = optional(string)
       ttl         = optional(number)
@@ -159,6 +173,12 @@ variable "boot_disk" {
     image_id    = optional(string, null)
     snapshot_id = optional(string, null)
     kms_key_id  = optional(string, null)
+    hardware_generation = optional(object({
+      legacy_features = optional(object({
+        pci_topology = optional(string)
+      }))
+      generation2_features = optional(object({}))
+    }))
   })
   default = {}
 
@@ -171,6 +191,17 @@ variable "boot_disk" {
       var.boot_disk.type == null || contains(["network-hdd", "network-ssd", "network-ssd-nonreplicated", "network-ssd-io-m3"], var.boot_disk.type)
       ) && (
       var.boot_disk.mode == null || contains(["READ_WRITE", "READ_ONLY"], var.boot_disk.mode)
+      ) && (
+      var.boot_disk.hardware_generation == null ? true : (
+        var.boot_disk.hardware_generation.legacy_features == null ||
+        var.boot_disk.hardware_generation.generation2_features == null
+      )
+      ) && (
+      try(
+        var.boot_disk.hardware_generation.legacy_features.pci_topology == null ||
+        contains(["PCI_TOPOLOGY_V1", "PCI_TOPOLOGY_V2"], var.boot_disk.hardware_generation.legacy_features.pci_topology),
+        true,
+      )
     )
     error_message = <<EOT
 Validation failed for boot_disk:
@@ -178,6 +209,8 @@ Validation failed for boot_disk:
 - block size must be one of 4096, 8192, 16384, 32768, 65536, 131072.
 - type must be one of 'network-hdd', 'network-ssd', or 'network-ssd-nonreplicated' if specified.
 - mode must be either 'READ_WRITE' or 'READ_ONLY' if specified.
+- hardware_generation must set at most one of legacy_features or generation2_features.
+- legacy_features.pci_topology must be PCI_TOPOLOGY_V1 or PCI_TOPOLOGY_V2 if specified.
 EOT
   }
 }
@@ -259,6 +292,54 @@ variable "allow_stopping_for_update" {
   default     = false
 }
 
+variable "allow_recreate" {
+  description = "If true, allows Terraform to recreate the instance or module-created disks when an update cannot be performed in place."
+  type        = bool
+  default     = false
+}
+
+variable "reserved_instance_pool_id" {
+  description = "ID of the reserved instance pool to attach this instance to."
+  type        = string
+  default     = null
+}
+
+variable "metadata_options" {
+  description = "Metadata service access options. Each specified endpoint or token mode must be an integer from 0 through 2."
+  type = object({
+    gce_http_endpoint    = optional(number)
+    gce_http_token       = optional(number)
+    aws_v1_http_endpoint = optional(number)
+    aws_v1_http_token    = optional(number)
+    aws_v2_http_endpoint = optional(number)
+    aws_v2_http_token    = optional(number)
+  })
+  default = null
+
+  validation {
+    condition = var.metadata_options == null ? true : alltrue([
+      for value in [
+        try(var.metadata_options.gce_http_endpoint, null),
+        try(var.metadata_options.gce_http_token, null),
+        try(var.metadata_options.aws_v1_http_endpoint, null),
+        try(var.metadata_options.aws_v1_http_token, null),
+        try(var.metadata_options.aws_v2_http_endpoint, null),
+        try(var.metadata_options.aws_v2_http_token, null),
+      ] : try(value == null || (value >= 0 && value <= 2 && floor(value) == value), true)
+    ])
+    error_message = "metadata_options values must be integers in the range [0, 2] when specified."
+  }
+}
+
+variable "local_disks" {
+  description = "List of local disks to attach to the instance. Local disks are not available for all accounts."
+  type = list(object({
+    size_bytes = number
+    kms_key_id = optional(string)
+  }))
+  default = []
+}
+
 variable "network_acceleration_type" {
   description = "Type of network acceleration. The default is standard. Values: standard, software_accelerated."
   type        = string
@@ -308,7 +389,8 @@ variable "placement_policy" {
     ```
   EOT
   type = object({
-    placement_group_id = optional(string)
+    placement_group_id        = optional(string)
+    placement_group_partition = optional(number)
     host_affinity_rules = optional(list(object({
       key    = string
       op     = string
@@ -373,8 +455,30 @@ variable "secondary_disks" {
     type        = optional(string, "network-hdd")
     description = optional(string, "Secondary disk")
     kms_key_id  = optional(string, null)
+    hardware_generation = optional(object({
+      legacy_features = optional(object({
+        pci_topology = optional(string)
+      }))
+      generation2_features = optional(object({}))
+    }))
   }))
   default = []
+
+  validation {
+    condition = alltrue([
+      for disk in var.secondary_disks : (
+        disk.hardware_generation == null ? true : (
+          disk.hardware_generation.legacy_features == null ||
+          disk.hardware_generation.generation2_features == null
+          ) && try(
+          disk.hardware_generation.legacy_features.pci_topology == null ||
+          contains(["PCI_TOPOLOGY_V1", "PCI_TOPOLOGY_V2"], disk.hardware_generation.legacy_features.pci_topology),
+          true,
+        )
+      )
+    ])
+    error_message = "Each secondary disk hardware_generation must set at most one variant, and legacy_features.pci_topology must be PCI_TOPOLOGY_V1 or PCI_TOPOLOGY_V2 if specified."
+  }
 }
 
 variable "backup" {
