@@ -1,17 +1,8 @@
-### Datasource
 data "yandex_client_config" "client" {}
-
-### Locals
-locals {
-  folder_id      = var.folder_id == null ? data.yandex_client_config.client.folder_id : var.folder_id
-  enable_oslogin = lookup(var.enable_oslogin_or_ssh_keys, "enable-oslogin", "false")
-  ssh_key        = lookup(var.enable_oslogin_or_ssh_keys, "ssh_key", null)
-  ssh_user       = lookup(var.enable_oslogin_or_ssh_keys, "ssh_user", null)
-}
 
 data "yandex_compute_image" "image" {
   family = var.image_family
-  count  = var.image_family != null ? 1 : 0
+  count  = var.image_family != null && var.boot_disk.disk_id == null && var.boot_disk.image_id == null && var.boot_disk.snapshot_id == null ? 1 : 0
 }
 
 
@@ -23,30 +14,9 @@ resource "yandex_compute_instance" "this" {
   description        = var.description
   hostname           = var.hostname
   folder_id          = local.folder_id
-  service_account_id = var.service_account_id != null ? var.service_account_id : (var.monitoring || var.backup ? yandex_iam_service_account.sa_instance[0].id : null)
+  service_account_id = local.instance_service_account_id
   labels             = var.labels
-  metadata = merge(
-    var.custom_metadata,
-    var.serial_port_enable ? { "serial-port-enable" = "1" } : {},
-    var.monitoring || var.backup ? {
-      "user-data" = format("#cloud-config\npackages:\n  - curl\n  - perl\n  - jq\n%s\nruncmd:\n%s",
-        local.ssh_key != null ? format("users:\n  - name: %s\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - %s",
-          local.ssh_user != null ? local.ssh_user : "default_user",
-          file(local.ssh_key)
-        ) : "",
-        join("\n", compact([
-          var.backup ? "  - curl 'https://storage.yandexcloud.net/backup-distributions/agent_installer.sh' | sudo bash" : null,
-          var.monitoring ? "  - wget -O - https://monitoring.api.cloud.yandex.net/monitoring/v2/unifiedAgent/config/install.sh | bash" : null
-        ]))
-      )
-      } : {
-      "user-data" = local.ssh_key != null ? format("#cloud-config\nusers:\n  - name: %s\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - %s",
-        local.ssh_user != null ? local.ssh_user : "default_user",
-        file(local.ssh_key)
-      ) : ""
-    },
-    local.enable_oslogin == "true" ? { "enable-oslogin" = local.enable_oslogin } : {}
-  )
+  metadata           = local.instance_metadata
 
   allow_stopping_for_update = var.allow_stopping_for_update
   allow_recreate            = var.allow_recreate
@@ -86,19 +56,22 @@ resource "yandex_compute_instance" "this" {
     auto_delete = lookup(var.boot_disk, "auto_delete", true)
     device_name = lookup(var.boot_disk, "device_name", "boot-disk")
     mode        = lookup(var.boot_disk, "mode", "READ_WRITE")
-    disk_id     = yandex_compute_disk.this != null ? yandex_compute_disk.this.id : lookup(var.boot_disk, "disk_id", null)
+    disk_id     = var.boot_disk.disk_id != null ? var.boot_disk.disk_id : yandex_compute_disk.this[0].id
   }
   dynamic "network_interface" {
     for_each = var.network_interfaces
     content {
-      subnet_id      = network_interface.value.subnet_id
-      index          = lookup(network_interface.value, "index", null)
-      ipv4           = lookup(network_interface.value, "ipv4", false)
-      ip_address     = lookup(network_interface.value, "ip_address", null)
-      ipv6           = lookup(network_interface.value, "ipv6", null)
-      ipv6_address   = lookup(network_interface.value, "ipv6_address", null)
-      nat            = lookup(network_interface.value, "nat", false)
-      nat_ip_address = lookup(network_interface.value, "nat", false) ? lookup(network_interface.value, "nat_ip_address", var.static_ip != null ? yandex_vpc_address.static_ip[0].external_ipv4_address[0].address : null) : null
+      subnet_id    = network_interface.value.subnet_id
+      index        = lookup(network_interface.value, "index", null)
+      ipv4         = lookup(network_interface.value, "ipv4", false)
+      ip_address   = lookup(network_interface.value, "ip_address", null)
+      ipv6         = lookup(network_interface.value, "ipv6", null)
+      ipv6_address = lookup(network_interface.value, "ipv6_address", null)
+      nat          = network_interface.value.nat
+      nat_ip_address = network_interface.value.nat ? (
+        network_interface.value.nat_ip_address != null ? network_interface.value.nat_ip_address :
+        (network_interface.key == local.managed_static_ip_network_interface_index ? yandex_vpc_address.static_ip[0].external_ipv4_address[0].address : null)
+      ) : null
 
       security_group_ids = lookup(network_interface.value, "security_group_ids", null)
 
@@ -136,7 +109,7 @@ resource "yandex_compute_instance" "this" {
 
 
   dynamic "secondary_disk" {
-    for_each = var.secondary_disks != null ? [for s in var.secondary_disks : s] : []
+    for_each = var.secondary_disks
     content {
       disk_id     = secondary_disk.value.disk_id != null ? secondary_disk.value.disk_id : yandex_compute_disk.secondary[secondary_disk.key].id
       auto_delete = secondary_disk.value.auto_delete
@@ -165,29 +138,34 @@ resource "yandex_compute_instance" "this" {
 
 
   dynamic "filesystem" {
-    for_each = var.filesystems != null ? [for f in var.filesystems : f] : []
+    for_each = var.filesystems
     content {
-      filesystem_id = filesystem.value.filesystem_id != null ? filesystem.value.filesystem_id : (length(yandex_compute_filesystem.this) > filesystem.key ? yandex_compute_filesystem.this[filesystem.key].id : null)
+      filesystem_id = filesystem.value.filesystem_id != null ? filesystem.value.filesystem_id : yandex_compute_filesystem.this[filesystem.key].id
       device_name   = filesystem.value.device_name != null ? filesystem.value.device_name : format("filesystem-%02d", filesystem.key + 1)
       mode          = filesystem.value.mode
     }
   }
-}
 
-# Backup
-data "yandex_backup_policy" "this_backup_policy" {
-  count = var.backup && var.backup_policy_id == null ? 1 : 0
-  name  = var.backup_frequency
-}
+  lifecycle {
+    precondition {
+      condition     = !(var.user_data != null && local.custom_user_data != null)
+      error_message = "Set only one of user_data and custom_metadata[\"user-data\"] so cloud-init precedence is explicit."
+    }
 
-resource "yandex_backup_policy_bindings" "this" {
-  count       = var.backup && var.backup_policy_id == null ? 1 : 0
-  instance_id = yandex_compute_instance.this.id
-  policy_id   = data.yandex_backup_policy.this_backup_policy[0].id
-}
+    precondition {
+      condition = try(var.static_ip == null ? true : (
+        var.static_ip.network_interface_index == null ?
+        length(local.eligible_managed_static_ip_network_interface_indexes) == 1 :
+        (var.static_ip.network_interface_index < length(var.network_interfaces) &&
+          var.network_interfaces[var.static_ip.network_interface_index].nat &&
+        var.network_interfaces[var.static_ip.network_interface_index].nat_ip_address == null)
+      ), false)
+      error_message = "static_ip must select exactly one NAT interface without nat_ip_address. Set static_ip.network_interface_index when more than one NAT interface is eligible; an explicit nat_ip_address takes precedence and cannot use a module-managed static IP."
+    }
+  }
 
-resource "yandex_backup_policy_bindings" "this_backup_binding" {
-  count       = var.backup && var.backup_policy_id != null ? 1 : 0
-  instance_id = yandex_compute_instance.this.id
-  policy_id   = var.backup_policy_id
+  depends_on = [
+    yandex_resourcemanager_folder_iam_member.sa_monitoring,
+    yandex_resourcemanager_folder_iam_member.sa_backup,
+  ]
 }

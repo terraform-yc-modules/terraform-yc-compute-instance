@@ -18,18 +18,42 @@ output "instance_id" {
   value       = yandex_compute_instance.this[*].id
 }
 
+output "instance_id_scalar" {
+  description = "The ID of the instance as a scalar value."
+  value       = yandex_compute_instance.this.id
+}
 
 output "boot_disk_id" {
   description = "The ID of the boot disk"
-  value       = yandex_compute_disk.this.id
+  value       = var.boot_disk.disk_id != null ? var.boot_disk.disk_id : yandex_compute_disk.this[0].id
 }
 
 output "secondary_disk_ids" {
   description = "The list of secondary disk IDs"
-  value       = [for disk_id, disk in yandex_compute_disk.secondary : disk.id]
+  value       = [for disk in yandex_compute_instance.this.secondary_disk : disk.disk_id]
 }
 
 output "filesystem_ids" {
   description = "The list of filesystem IDs"
-  value       = [for fs_id, fs in yandex_compute_filesystem.this : fs.id]
+  value       = [for filesystem in yandex_compute_instance.this.filesystem : filesystem.filesystem_id]
+}
+
+output "network_interfaces" {
+  description = "Full network interface objects attached to the instance."
+  value       = yandex_compute_instance.this.network_interface
+}
+
+output "attached_boot_disk" {
+  description = "Full boot disk attachment object."
+  value       = yandex_compute_instance.this.boot_disk[0]
+}
+
+output "attached_secondary_disks" {
+  description = "Full secondary disk attachment objects."
+  value       = yandex_compute_instance.this.secondary_disk
+}
+
+output "attached_filesystems" {
+  description = "Full filesystem attachment objects."
+  value       = yandex_compute_instance.this.filesystem
 }
