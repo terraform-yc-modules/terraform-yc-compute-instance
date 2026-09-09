@@ -33,4 +33,4 @@ External secondary disks and filesystems are now attached without a module-creat
 
 ## OS Login guest-agent support
 
-`enable_oslogin = "true"` writes the OS Login metadata request only. It does not install or validate a guest agent. Verify guest-agent support for the actual boot image, whether it comes from `image_family`, an explicit `image_id`, or a snapshot. No Terraform precondition is added because the module supports arbitrary boot sources and metadata cannot prove that the guest can honor the request.
+`enable-oslogin = "true"` writes the OS Login metadata request only. It does not install or validate a guest agent. Verify guest-agent support for the actual boot image, whether it comes from `image_family`, an explicit `image_id`, or a snapshot. No Terraform precondition is added because the module supports arbitrary boot sources and metadata cannot prove that the guest can honor the request.
