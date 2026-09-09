@@ -27,6 +27,8 @@ External secondary disks and filesystems are now attached without a module-creat
 
 Known `boot_disk.disk_id`, `secondary_disks[*].disk_id`, and `filesystems[*].filesystem_id` values retain this automatic no-create behavior. When the ID comes from a resource in the same plan and is therefore unknown during planning, set `create = false` on that storage object. This explicitly keeps it external, skips the boot-image lookup for an external boot disk, and allows the instance attachment to keep the unknown ID until apply.
 
+`create = false` changes resource ownership only. It does **not** change the legacy `auto_delete = true` default for boot and secondary disks. Set `auto_delete = false` for fixture- or user-owned disks before destroying the VM, or the instance destroy can delete those disks.
+
 ## Metadata and agents
 
 `user_data` is raw authoritative cloud-init content. When set, the module does not append SSH users or agent installation commands. Use either `user_data` or `custom_metadata["user-data"]`, not both. `ssh_public_key` in `enable_oslogin_or_ssh_keys` accepts key content; the existing `ssh_key` path remains supported and preserves legacy generated metadata when new inputs are absent.

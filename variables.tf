@@ -184,6 +184,8 @@ variable "boot_disk" {
       var.boot_disk.type == null || contains(["network-hdd", "network-ssd", "network-ssd-nonreplicated", "network-ssd-io-m3"], var.boot_disk.type)
       ) && (
       var.boot_disk.mode == null || contains(["READ_WRITE", "READ_ONLY"], var.boot_disk.mode)
+      ) && (
+      var.boot_disk.create ? true : try(var.boot_disk.disk_id != null, true)
     )
     error_message = <<EOT
 Validation failed for boot_disk:
@@ -191,6 +193,7 @@ Validation failed for boot_disk:
 - block size must be one of 4096 or 8192.
 - type must be one of 'network-hdd', 'network-ssd', 'network-ssd-nonreplicated', or 'network-ssd-io-m3' if specified.
 - mode must be either 'READ_WRITE' or 'READ_ONLY' if specified.
+- disk_id must be set when create is false.
 EOT
   }
 }
@@ -403,6 +406,13 @@ variable "filesystems" {
     type          = optional(string, "network-ssd")
   }))
   default = []
+
+  validation {
+    condition = alltrue([
+      for filesystem in var.filesystems : filesystem.create ? true : try(filesystem.filesystem_id != null, true)
+    ])
+    error_message = "Each filesystem with create=false must set filesystem_id."
+  }
 }
 
 
@@ -422,6 +432,15 @@ variable "secondary_disks" {
     kms_key_id  = optional(string, null)
   }))
   default = []
+
+  validation {
+    condition = alltrue([
+      for disk in var.secondary_disks : (
+        disk.create ? true : try(disk.disk_id != null, true)
+      )
+    ])
+    error_message = "Each secondary disk with create=false must set disk_id."
+  }
 }
 
 variable "backup" {

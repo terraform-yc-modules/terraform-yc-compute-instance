@@ -25,7 +25,7 @@ output "instance_id_scalar" {
 
 output "boot_disk_id" {
   description = "The ID of the boot disk"
-  value       = var.boot_disk.disk_id != null ? var.boot_disk.disk_id : yandex_compute_disk.this[0].id
+  value       = (var.boot_disk.create ? var.boot_disk.disk_id == null : false) ? yandex_compute_disk.this[0].id : var.boot_disk.disk_id
 }
 
 output "secondary_disk_ids" {
