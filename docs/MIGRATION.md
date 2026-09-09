@@ -25,6 +25,8 @@ Run `state rm` only after the ownership handoff and ID verification. It removes 
 
 External secondary disks and filesystems are now attached without a module-created duplicate. Their original list indexes remain the attachment and generated-resource keys.
 
+Known `boot_disk.disk_id`, `secondary_disks[*].disk_id`, and `filesystems[*].filesystem_id` values retain this automatic no-create behavior. When the ID comes from a resource in the same plan and is therefore unknown during planning, set `create = false` on that storage object. This explicitly keeps it external, skips the boot-image lookup for an external boot disk, and allows the instance attachment to keep the unknown ID until apply.
+
 ## Metadata and agents
 
 `user_data` is raw authoritative cloud-init content. When set, the module does not append SSH users or agent installation commands. Use either `user_data` or `custom_metadata["user-data"]`, not both. `ssh_public_key` in `enable_oslogin_or_ssh_keys` accepts key content; the existing `ssh_key` path remains supported and preserves legacy generated metadata when new inputs are absent.

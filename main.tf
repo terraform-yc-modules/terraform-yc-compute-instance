@@ -2,7 +2,7 @@ data "yandex_client_config" "client" {}
 
 data "yandex_compute_image" "image" {
   family = var.image_family
-  count  = var.image_family != null && var.boot_disk.disk_id == null && var.boot_disk.image_id == null && var.boot_disk.snapshot_id == null ? 1 : 0
+  count  = var.boot_disk.create ? (var.image_family != null && var.boot_disk.disk_id == null && var.boot_disk.image_id == null && var.boot_disk.snapshot_id == null ? 1 : 0) : 0
 }
 
 
@@ -56,7 +56,7 @@ resource "yandex_compute_instance" "this" {
     auto_delete = lookup(var.boot_disk, "auto_delete", true)
     device_name = lookup(var.boot_disk, "device_name", "boot-disk")
     mode        = lookup(var.boot_disk, "mode", "READ_WRITE")
-    disk_id     = var.boot_disk.disk_id != null ? var.boot_disk.disk_id : yandex_compute_disk.this[0].id
+    disk_id     = (var.boot_disk.create ? var.boot_disk.disk_id == null : false) ? yandex_compute_disk.this[0].id : var.boot_disk.disk_id
   }
   dynamic "network_interface" {
     for_each = var.network_interfaces
@@ -111,7 +111,7 @@ resource "yandex_compute_instance" "this" {
   dynamic "secondary_disk" {
     for_each = var.secondary_disks
     content {
-      disk_id     = secondary_disk.value.disk_id != null ? secondary_disk.value.disk_id : yandex_compute_disk.secondary[secondary_disk.key].id
+      disk_id     = (secondary_disk.value.create ? secondary_disk.value.disk_id == null : false) ? yandex_compute_disk.secondary[secondary_disk.key].id : secondary_disk.value.disk_id
       auto_delete = secondary_disk.value.auto_delete
       device_name = secondary_disk.value.device_name != null ? secondary_disk.value.device_name : format("secondary-disk-%02d", secondary_disk.key + 1)
       mode        = secondary_disk.value.mode
@@ -140,7 +140,7 @@ resource "yandex_compute_instance" "this" {
   dynamic "filesystem" {
     for_each = var.filesystems
     content {
-      filesystem_id = filesystem.value.filesystem_id != null ? filesystem.value.filesystem_id : yandex_compute_filesystem.this[filesystem.key].id
+      filesystem_id = (filesystem.value.create ? filesystem.value.filesystem_id == null : false) ? yandex_compute_filesystem.this[filesystem.key].id : filesystem.value.filesystem_id
       device_name   = filesystem.value.device_name != null ? filesystem.value.device_name : format("filesystem-%02d", filesystem.key + 1)
       mode          = filesystem.value.mode
     }
