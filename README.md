@@ -13,6 +13,8 @@ The module implementation is compatible with Yandex provider `>= 0.216.0`; provi
 
 `static_ip` selects one NAT interface: set `network_interface_index` for a multi-NIC instance, while a single eligible NAT interface stays compatible. Explicit NIC `nat_ip_address` wins and cannot share the same managed allocation. `user_data` is raw authoritative cloud-init; it is never amended with generated SSH or agent commands. See [migration notes](docs/MIGRATION.md) before changing an existing boot disk to `boot_disk.disk_id`, because older module versions created and attached their own disk instead.
 
+Setting `enable-oslogin = "true"` only requests OS Login through instance metadata. The selected boot image must include a compatible guest agent; verify that support for the actual image family, image ID, or snapshot yourself. The module intentionally does not validate image support because arbitrary boot sources are valid inputs and metadata alone cannot prove guest availability.
+
 ## Usage
 
 ```hcl
