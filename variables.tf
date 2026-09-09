@@ -102,12 +102,13 @@ variable "network_interfaces" {
   }
 }
 variable "static_ip" {
-  description = "Configuration for static IP address"
+  description = "Configuration for a module-managed external static IP address. Set network_interface_index when more than one eligible NAT interface exists."
   type = object({
-    description         = optional(string)
-    folder_id           = optional(string)
-    labels              = optional(map(string))
-    deletion_protection = optional(bool)
+    description             = optional(string)
+    folder_id               = optional(string)
+    labels                  = optional(map(string))
+    deletion_protection     = optional(bool)
+    network_interface_index = optional(number)
     external_ipv4_address = optional(object({
       zone_id                  = string
       ddos_protection_provider = optional(string)
@@ -121,6 +122,17 @@ variable "static_ip" {
     }))
   })
   default = null
+
+  validation {
+    condition = try(var.static_ip == null ? true : (
+      var.static_ip.external_ipv4_address != null &&
+      (var.static_ip.network_interface_index == null ? true : (
+        var.static_ip.network_interface_index >= 0 &&
+        floor(var.static_ip.network_interface_index) == var.static_ip.network_interface_index
+      ))
+    ), false)
+    error_message = "static_ip requires external_ipv4_address and, when set, network_interface_index must be a non-negative integer."
+  }
 }
 
 
@@ -147,7 +159,7 @@ variable "folder_id" {
 }
 
 variable "boot_disk" {
-  description = "Configuration for the boot disk. If not specified, a disk will be created with default parameters."
+  description = "Configuration for the boot disk. If disk_id is null, the module creates a disk; otherwise it attaches the supplied disk without creating a duplicate."
   type = object({
     auto_delete = optional(bool, true)
     device_name = optional(string, "boot-disk")
@@ -175,8 +187,8 @@ variable "boot_disk" {
     error_message = <<EOT
 Validation failed for boot_disk:
 - size must be in range [4, 8192] GB if specified.
-- block size must be one of 4096, 8192, 16384, 32768, 65536, 131072.
-- type must be one of 'network-hdd', 'network-ssd', or 'network-ssd-nonreplicated' if specified.
+- block size must be one of 4096 or 8192.
+- type must be one of 'network-hdd', 'network-ssd', 'network-ssd-nonreplicated', or 'network-ssd-io-m3' if specified.
 - mode must be either 'READ_WRITE' or 'READ_ONLY' if specified.
 EOT
   }
@@ -194,7 +206,7 @@ variable "enable_oslogin_or_ssh_keys" {
   description = <<-EOT
     Authentication configuration for the instance. You can either:
     1. Enable OS Login by setting enable-oslogin = "true"
-    2. Provide SSH keys by setting ssh_user and ssh_key
+    2. Provide an SSH public key by setting ssh_user and exactly one of ssh_key (path) or ssh_public_key (content)
     
     Example for OS Login:
     ```
@@ -203,11 +215,11 @@ variable "enable_oslogin_or_ssh_keys" {
     }
     ```
     
-    Example for SSH keys:
+    Example for SSH key content:
     ```
     enable_oslogin_or_ssh_keys = {
-      ssh_user = "username"
-      ssh_key  = "~/.ssh/id_rsa.pub"
+      ssh_user       = "username"
+      ssh_public_key = "ssh-ed25519 AAAA... user@example"
     }
     ```
   EOT
@@ -215,6 +227,7 @@ variable "enable_oslogin_or_ssh_keys" {
     enable-oslogin = optional(string, "false")
     ssh_user       = optional(string)
     ssh_key        = optional(string)
+    ssh_public_key = optional(string)
   })
   default = {}
 
@@ -222,22 +235,24 @@ variable "enable_oslogin_or_ssh_keys" {
     condition = (
       (var.enable_oslogin_or_ssh_keys.enable-oslogin == "true" &&
         var.enable_oslogin_or_ssh_keys.ssh_user == null &&
-      var.enable_oslogin_or_ssh_keys.ssh_key == null)
+        var.enable_oslogin_or_ssh_keys.ssh_key == null &&
+      var.enable_oslogin_or_ssh_keys.ssh_public_key == null)
 
       ||
 
       (var.enable_oslogin_or_ssh_keys.enable-oslogin == "false" &&
         var.enable_oslogin_or_ssh_keys.ssh_user != null &&
-      var.enable_oslogin_or_ssh_keys.ssh_key != null)
+        ((var.enable_oslogin_or_ssh_keys.ssh_key != null && var.enable_oslogin_or_ssh_keys.ssh_public_key == null) ||
+      (var.enable_oslogin_or_ssh_keys.ssh_key == null && var.enable_oslogin_or_ssh_keys.ssh_public_key != null)))
     )
-    error_message = "Either provide only enable-oslogin=true, or specify both ssh_user and ssh_key without enable-oslogin."
+    error_message = "Either provide only enable-oslogin=true, or specify ssh_user with exactly one of ssh_key (path) or ssh_public_key (content) without enable-oslogin."
   }
 }
 
 
 variable "custom_metadata" {
   description = <<-EOF
-     Adding custom metadata to node-groups.
+     Additional instance metadata. Use user_data instead of custom_metadata["user-data"] when raw cloud-init is intentional.
      Example:
      ```
      custom_metadata = {
@@ -248,6 +263,14 @@ variable "custom_metadata" {
   type        = map(any)
   default     = {}
 }
+
+variable "user_data" {
+  description = "Raw cloud-init user-data. When set, it is used unchanged and takes precedence over generated SSH and agent configuration."
+  type        = string
+  default     = null
+  nullable    = true
+}
+
 variable "serial_port_enable" {
   description = "Enable serial port"
   type        = bool
@@ -327,13 +350,34 @@ variable "service_account_id" {
 
 variable "monitoring" {
   description = <<-EOT
-    Enable Yandex Cloud monitoring agent on the instance. If enabled and service_account_id is not provided,
-    a new service account with monitoring.editor role will be created.
+    Enable Yandex Cloud monitoring integration. By default it installs the agent and, if service_account_id is not provided,
+    creates a service account with monitoring.editor. Set install_monitoring_agent=false for a preinstalled agent.
     
     Note: The UI won't show the 'Monitoring enabled' checkbox, but monitoring will work.
   EOT
   type        = bool
   default     = false
+}
+
+variable "install_monitoring_agent" {
+  description = "Whether to install the monitoring agent through generated cloud-init. Null preserves the monitoring legacy flag."
+  type        = bool
+  default     = null
+  nullable    = true
+}
+
+variable "install_backup_agent" {
+  description = "Whether to install the backup agent through generated cloud-init. Null preserves the backup legacy flag."
+  type        = bool
+  default     = null
+  nullable    = true
+}
+
+variable "manage_service_account_iam" {
+  description = "Whether the module manages monitoring and backup IAM roles. Null manages roles for a module-created service account only; external service accounts require true."
+  type        = bool
+  default     = null
+  nullable    = true
 }
 
 resource "random_string" "unique_id" {
@@ -379,8 +423,8 @@ variable "secondary_disks" {
 
 variable "backup" {
   description = <<-EOT
-    Enable Yandex Cloud backup for the instance. If enabled and service_account_id is not provided,
-    a new service account with backup.editor role will be created.
+    Enable Yandex Cloud backup. By default it installs the agent and, if service_account_id is not provided,
+    creates a service account with backup.editor. Set install_backup_agent=false for a preinstalled agent.
     Use backup_policy_id to specify backup policy OR backup_frequency to specify backup frequency from default policies.
   EOT
   type        = bool

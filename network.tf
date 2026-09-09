@@ -2,9 +2,9 @@ resource "yandex_vpc_address" "static_ip" {
   count               = var.static_ip != null ? 1 : 0
   name                = "${var.name}-${random_string.unique_id.result}"
   description         = var.static_ip.description
-  folder_id           = local.folder_id
+  folder_id           = var.static_ip.folder_id != null ? var.static_ip.folder_id : local.folder_id
   deletion_protection = var.static_ip.deletion_protection
-  labels              = var.labels
+  labels              = var.static_ip.labels != null ? var.static_ip.labels : var.labels
   external_ipv4_address {
     zone_id                  = var.static_ip.external_ipv4_address.zone_id
     ddos_protection_provider = var.static_ip.external_ipv4_address.ddos_protection_provider

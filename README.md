@@ -8,6 +8,9 @@
 - **Static IP**: Optionally assign a static IP to the instance.
 - **Filesystem**: Attach a Yandex.Cloud Filesystem to the instance.
 - **Monitoring and Backup**: Enable monitoring and backup services using Yandex.Cloud's predefined scripts.
+
+`static_ip` selects one NAT interface: set `network_interface_index` for a multi-NIC instance, while a single eligible NAT interface stays compatible. Explicit NIC `nat_ip_address` wins and cannot share the same managed allocation. `user_data` is raw authoritative cloud-init; it is never amended with generated SSH or agent commands. See [migration notes](docs/MIGRATION.md) before changing an existing boot disk to `boot_disk.disk_id`, because older module versions created and attached their own disk instead.
+
 ## Usage
 
 ```hcl
@@ -79,8 +82,8 @@ module "compute_instance" {
   ]
 
   static_ip = {
-    name        = "my-static-ip"
-    description = "Static IP for dev instance"
+    description             = "Static IP for dev instance"
+    network_interface_index = 0
     external_ipv4_address = {
       zone_id = "ru-central1-a"
     }
