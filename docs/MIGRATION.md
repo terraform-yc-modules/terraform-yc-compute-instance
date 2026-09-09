@@ -30,3 +30,7 @@ External secondary disks and filesystems are now attached without a module-creat
 `user_data` is raw authoritative cloud-init content. When set, the module does not append SSH users or agent installation commands. Use either `user_data` or `custom_metadata["user-data"]`, not both. `ssh_public_key` in `enable_oslogin_or_ssh_keys` accepts key content; the existing `ssh_key` path remains supported and preserves legacy generated metadata when new inputs are absent.
 
 `install_monitoring_agent` and `install_backup_agent` are nullable: `null` retains the legacy `monitoring`/`backup` behavior. Set `false` when an agent is preinstalled. `manage_service_account_iam` is also nullable: internal service accounts retain legacy role management, while external service-account roles require explicit `true`. Legacy service flags can still provision roles for a preinstalled agent.
+
+## OS Login guest-agent support
+
+`enable_oslogin = "true"` writes the OS Login metadata request only. It does not install or validate a guest agent. Verify guest-agent support for the actual boot image, whether it comes from `image_family`, an explicit `image_id`, or a snapshot. No Terraform precondition is added because the module supports arbitrary boot sources and metadata cannot prove that the guest can honor the request.

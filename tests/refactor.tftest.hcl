@@ -73,6 +73,15 @@ run "external_storage_is_attached_without_module_creation" {
     condition     = length(yandex_compute_disk.this) == 0 && length(yandex_compute_disk.secondary) == 1 && length(yandex_compute_filesystem.this) == 1
     error_message = "The module must not create resources for externally supplied boot disks, secondary disks, or filesystems."
   }
+
+  assert {
+    condition = (
+      contains([for boot_disk in yandex_compute_instance.this.boot_disk : boot_disk.disk_id], "external-boot-disk") &&
+      contains([for secondary_disk in yandex_compute_instance.this.secondary_disk : secondary_disk.disk_id], "external-secondary-disk") &&
+      contains([for filesystem in yandex_compute_instance.this.filesystem : filesystem.filesystem_id], "external-filesystem")
+    )
+    error_message = "External attachment IDs must be retained without relying on provider set ordering."
+  }
 }
 
 run "ambiguous_managed_static_ip_requires_a_selected_interface" {
@@ -133,6 +142,34 @@ run "selected_managed_static_ip_is_accepted" {
 
     static_ip = {
       network_interface_index = 1
+      external_ipv4_address = {
+        zone_id = "ru-central1-a"
+      }
+    }
+  }
+}
+
+run "explicit_nat_ip_address_leaves_no_target_for_managed_static_ip" {
+  command = plan
+
+  expect_failures = [yandex_compute_instance.this]
+
+  variables {
+    name      = "explicit-nat-ip-regression"
+    folder_id = "test-folder"
+    zone      = "ru-central1-a"
+
+    enable_oslogin_or_ssh_keys = {
+      enable-oslogin = "true"
+    }
+
+    network_interfaces = [{
+      subnet_id      = "test-subnet"
+      nat            = true
+      nat_ip_address = "203.0.113.42"
+    }]
+
+    static_ip = {
       external_ipv4_address = {
         zone_id = "ru-central1-a"
       }
@@ -243,6 +280,32 @@ run "external_service_account_roles_require_explicit_opt_in" {
   assert {
     condition     = length(yandex_resourcemanager_folder_iam_member.sa_monitoring) == 1
     error_message = "External service-account IAM management must be possible only through explicit opt-in."
+  }
+}
+
+run "external_service_account_does_not_receive_roles_by_default" {
+  command = plan
+
+  variables {
+    name               = "external-sa-default-regression"
+    folder_id          = "test-folder"
+    zone               = "ru-central1-a"
+    monitoring         = true
+    service_account_id = "external-service-account"
+
+    enable_oslogin_or_ssh_keys = {
+      enable-oslogin = "true"
+    }
+
+    network_interfaces = [{
+      subnet_id = "test-subnet"
+      nat       = true
+    }]
+  }
+
+  assert {
+    condition     = length(yandex_resourcemanager_folder_iam_member.sa_monitoring) == 0 && length(yandex_resourcemanager_folder_iam_member.sa_backup) == 0
+    error_message = "An external service account must not receive module-managed roles unless manage_service_account_iam=true."
   }
 }
 
