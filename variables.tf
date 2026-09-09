@@ -215,6 +215,8 @@ variable "boot_disk" {
         contains(["PCI_TOPOLOGY_V1", "PCI_TOPOLOGY_V2"], var.boot_disk.hardware_generation.legacy_features.pci_topology),
         true,
       )
+      ) && (
+      var.boot_disk.create ? true : try(var.boot_disk.disk_id != null, true)
     )
     error_message = <<EOT
 Validation failed for boot_disk:
@@ -224,6 +226,7 @@ Validation failed for boot_disk:
 - mode must be either 'READ_WRITE' or 'READ_ONLY' if specified.
 - hardware_generation must set at most one of legacy_features or generation2_features.
 - legacy_features.pci_topology must be PCI_TOPOLOGY_V1 or PCI_TOPOLOGY_V2 if specified.
+- disk_id must be set when create is false.
 EOT
   }
 }
@@ -485,6 +488,13 @@ variable "filesystems" {
     type          = optional(string, "network-ssd")
   }))
   default = []
+
+  validation {
+    condition = alltrue([
+      for filesystem in var.filesystems : filesystem.create ? true : try(filesystem.filesystem_id != null, true)
+    ])
+    error_message = "Each filesystem with create=false must set filesystem_id."
+  }
 }
 
 
@@ -514,6 +524,8 @@ variable "secondary_disks" {
   validation {
     condition = alltrue([
       for disk in var.secondary_disks : (
+        disk.create ? true : try(disk.disk_id != null, true)
+        ) && (
         disk.hardware_generation == null ? true : (
           disk.hardware_generation.legacy_features == null ||
           disk.hardware_generation.generation2_features == null
@@ -524,7 +536,7 @@ variable "secondary_disks" {
         )
       )
     ])
-    error_message = "Each secondary disk hardware_generation must set at most one variant, and legacy_features.pci_topology must be PCI_TOPOLOGY_V1 or PCI_TOPOLOGY_V2 if specified."
+    error_message = "Each secondary disk with create=false must set disk_id; hardware_generation must set at most one variant, and legacy_features.pci_topology must be PCI_TOPOLOGY_V1 or PCI_TOPOLOGY_V2 if specified."
   }
 }
 

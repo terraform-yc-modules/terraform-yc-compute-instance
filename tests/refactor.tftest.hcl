@@ -84,6 +84,81 @@ run "external_storage_is_attached_without_module_creation" {
   }
 }
 
+run "external_boot_disk_requires_an_id" {
+  command = plan
+
+  expect_failures = [var.boot_disk]
+
+  variables {
+    name      = "external-boot-id-validation"
+    folder_id = "test-folder"
+    zone      = "ru-central1-a"
+
+    enable_oslogin_or_ssh_keys = {
+      enable-oslogin = "true"
+    }
+
+    network_interfaces = [{
+      subnet_id = "test-subnet"
+      nat       = true
+    }]
+
+    boot_disk = {
+      create = false
+    }
+  }
+}
+
+run "external_secondary_disk_requires_an_id" {
+  command = plan
+
+  expect_failures = [var.secondary_disks]
+
+  variables {
+    name      = "external-secondary-id-validation"
+    folder_id = "test-folder"
+    zone      = "ru-central1-a"
+
+    enable_oslogin_or_ssh_keys = {
+      enable-oslogin = "true"
+    }
+
+    network_interfaces = [{
+      subnet_id = "test-subnet"
+      nat       = true
+    }]
+
+    secondary_disks = [{
+      create = false
+    }]
+  }
+}
+
+run "external_filesystem_requires_an_id" {
+  command = plan
+
+  expect_failures = [var.filesystems]
+
+  variables {
+    name      = "external-filesystem-id-validation"
+    folder_id = "test-folder"
+    zone      = "ru-central1-a"
+
+    enable_oslogin_or_ssh_keys = {
+      enable-oslogin = "true"
+    }
+
+    network_interfaces = [{
+      subnet_id = "test-subnet"
+      nat       = true
+    }]
+
+    filesystems = [{
+      create = false
+    }]
+  }
+}
+
 run "ambiguous_managed_static_ip_requires_a_selected_interface" {
   command = plan
 
