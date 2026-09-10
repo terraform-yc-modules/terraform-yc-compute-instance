@@ -74,7 +74,7 @@ resource "yandex_compute_disk" "secondary" {
 
 
 resource "yandex_compute_filesystem" "this" {
-  for_each    = { for idx, filesystem in var.filesystems : idx => filesystem if filesystem.create ? filesystem.filesystem_id == null : false }
+  for_each    = { for idx, filesystem in local.filesystems : idx => filesystem if filesystem.create ? filesystem.filesystem_id == null : false }
   name        = format("%s-filesystem-%d", var.name, each.key + 1)
   description = lookup(each.value, "description", null)
   folder_id   = local.folder_id

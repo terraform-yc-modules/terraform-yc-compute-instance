@@ -30,12 +30,18 @@ output "boot_disk_id" {
 
 output "secondary_disk_ids" {
   description = "The list of secondary disk IDs"
-  value       = [for disk in yandex_compute_instance.this.secondary_disk : disk.disk_id]
+  value = [
+    for index, disk in var.secondary_disks :
+    disk.create ? (disk.disk_id == null ? yandex_compute_disk.secondary[index].id : disk.disk_id) : disk.disk_id
+  ]
 }
 
 output "filesystem_ids" {
   description = "The list of filesystem IDs"
-  value       = [for filesystem in yandex_compute_instance.this.filesystem : filesystem.filesystem_id]
+  value = [
+    for index, filesystem in local.filesystems :
+    filesystem.create ? (filesystem.filesystem_id == null ? yandex_compute_filesystem.this[index].id : filesystem.filesystem_id) : filesystem.filesystem_id
+  ]
 }
 
 output "network_interfaces" {

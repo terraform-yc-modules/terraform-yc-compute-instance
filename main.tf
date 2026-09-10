@@ -2,7 +2,7 @@ data "yandex_client_config" "client" {}
 
 data "yandex_compute_image" "image" {
   family = var.image_family
-  count  = var.boot_disk.create ? (var.image_family != null && var.boot_disk.disk_id == null && var.boot_disk.image_id == null && var.boot_disk.snapshot_id == null ? 1 : 0) : 0
+  count  = var.boot_disk.create && var.image_family != null ? 1 : 0
 }
 
 
@@ -138,7 +138,7 @@ resource "yandex_compute_instance" "this" {
 
 
   dynamic "filesystem" {
-    for_each = var.filesystems
+    for_each = local.filesystems
     content {
       filesystem_id = (filesystem.value.create ? filesystem.value.filesystem_id == null : false) ? yandex_compute_filesystem.this[filesystem.key].id : filesystem.value.filesystem_id
       device_name   = filesystem.value.device_name != null ? filesystem.value.device_name : format("filesystem-%02d", filesystem.key + 1)

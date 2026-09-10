@@ -4,6 +4,7 @@ locals {
   ssh_key        = lookup(var.enable_oslogin_or_ssh_keys, "ssh_key", null)
   ssh_public_key = lookup(var.enable_oslogin_or_ssh_keys, "ssh_public_key", null)
   ssh_user       = lookup(var.enable_oslogin_or_ssh_keys, "ssh_user", null)
+  filesystems    = coalesce(var.filesystems, [])
 
   eligible_managed_static_ip_network_interface_indexes = [
     for index, network_interface in var.network_interfaces : index
