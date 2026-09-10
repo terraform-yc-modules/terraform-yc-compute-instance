@@ -38,11 +38,11 @@ resource "yandex_compute_instance" "this" {
   dynamic "network_interface" {
     for_each = var.network_interfaces
     content {
-      subnet_id    = network_interface.value.subnet_id
-      index        = lookup(network_interface.value, "index", null)
-      ipv4         = lookup(network_interface.value, "ipv4", false)
-      ip_address   = lookup(network_interface.value, "ip_address", null)
-      nat          = network_interface.value.nat
+      subnet_id  = network_interface.value.subnet_id
+      index      = lookup(network_interface.value, "index", null)
+      ipv4       = lookup(network_interface.value, "ipv4", false)
+      ip_address = lookup(network_interface.value, "ip_address", null)
+      nat        = network_interface.value.nat
       nat_ip_address = network_interface.value.nat ? (
         network_interface.value.nat_ip_address != null ? network_interface.value.nat_ip_address :
         (network_interface.key == local.managed_static_ip_network_interface_index ? yandex_vpc_address.static_ip[0].external_ipv4_address[0].address : null)
