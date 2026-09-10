@@ -2,6 +2,14 @@ mock_provider "random" {}
 
 mock_provider "yandex" {}
 
+run "module_created_boot_disk_accepts_an_unknown_same_plan_source" {
+  command = plan
+
+  module {
+    source = "./tests/fixtures/unknown_boot_source"
+  }
+}
+
 run "legacy_defaults_keep_a_module_created_boot_disk_at_the_moved_address" {
   command = plan
 
@@ -81,6 +89,75 @@ run "external_storage_is_attached_without_module_creation" {
       contains([for filesystem in yandex_compute_instance.this.filesystem : filesystem.filesystem_id], "external-filesystem")
     )
     error_message = "External attachment IDs must be retained without relying on provider set ordering."
+  }
+}
+
+run "storage_id_outputs_follow_numeric_input_order" {
+  command = apply
+
+  variables {
+    name      = "storage-output-order-regression"
+    folder_id = "test-folder"
+    zone      = "ru-central1-a"
+
+    enable_oslogin_or_ssh_keys = {
+      enable-oslogin = "true"
+    }
+
+    network_interfaces = [{
+      subnet_id = "test-subnet"
+      nat       = true
+    }]
+
+    secondary_disks = [
+      { size = 20 },
+      {
+        create  = false
+        disk_id = "external-secondary-disk"
+      },
+    ]
+
+    filesystems = [
+      {
+        size = 20
+        zone = "ru-central1-a"
+      },
+      {
+        create        = false
+        filesystem_id = "external-filesystem"
+      },
+    ]
+  }
+
+  assert {
+    condition     = output.secondary_disk_ids[0] == yandex_compute_disk.secondary[0].id && output.secondary_disk_ids[1] == "external-secondary-disk"
+    error_message = "secondary_disk_ids must preserve numeric input order for module-created and external disks."
+  }
+
+  assert {
+    condition     = output.filesystem_ids[0] == yandex_compute_filesystem.this[0].id && output.filesystem_ids[1] == "external-filesystem"
+    error_message = "filesystem_ids must preserve numeric input order for module-created and external filesystems."
+  }
+}
+
+run "null_filesystems_are_accepted" {
+  command = plan
+
+  variables {
+    name      = "null-filesystems-regression"
+    folder_id = "test-folder"
+    zone      = "ru-central1-a"
+
+    enable_oslogin_or_ssh_keys = {
+      enable-oslogin = "true"
+    }
+
+    network_interfaces = [{
+      subnet_id = "test-subnet"
+      nat       = true
+    }]
+
+    filesystems = null
   }
 }
 

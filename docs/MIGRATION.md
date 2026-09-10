@@ -25,6 +25,12 @@ Run `state rm` only after the ownership handoff and ID verification. It removes 
 
 External secondary disks and filesystems are now attached without a module-created duplicate. Their original list indexes remain the attachment and generated-resource keys.
 
+## Secondary disks and filesystems with existing state
+
+The legacy numeric state addresses remain `yandex_compute_disk.secondary[<input-index>]` and `yandex_compute_filesystem.this[<input-index>]`. When an input switches to an external `disk_id` or `filesystem_id`, the module filters the corresponding managed resource out of configuration. A saved plan can therefore schedule a legacy resource at that exact address for destruction.
+
+Before applying, compare the attachment ID with the state object. Destroy only a confirmed duplicate. If the legacy resource must remain, hand off ownership first (for example, import it into a dedicated configuration), then remove this module's state address deliberately; do not use a state removal to hide an attached or still-required object.
+
 Known `boot_disk.disk_id`, `secondary_disks[*].disk_id`, and `filesystems[*].filesystem_id` values retain this automatic no-create behavior. When the ID comes from a resource in the same plan and is therefore unknown during planning, set `create = false` on that storage object. This explicitly keeps it external, skips the boot-image lookup for an external boot disk, and allows the instance attachment to keep the unknown ID until apply.
 
 `create = false` changes resource ownership only. It does **not** change the legacy `auto_delete = true` default for boot and secondary disks. Set `auto_delete = false` for fixture- or user-owned disks before destroying the VM, or the instance destroy can delete those disks.

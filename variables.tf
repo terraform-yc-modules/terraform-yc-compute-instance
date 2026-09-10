@@ -409,7 +409,7 @@ variable "filesystems" {
 
   validation {
     condition = alltrue([
-      for filesystem in var.filesystems : filesystem.create ? true : try(filesystem.filesystem_id != null, true)
+      for filesystem in coalesce(var.filesystems, []) : filesystem.create ? true : try(filesystem.filesystem_id != null, true)
     ])
     error_message = "Each filesystem with create=false must set filesystem_id."
   }
