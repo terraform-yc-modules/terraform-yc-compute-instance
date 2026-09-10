@@ -435,7 +435,7 @@ variable "secondary_disks" {
 
   validation {
     condition = alltrue([
-      for disk in var.secondary_disks : (
+      for disk in coalesce(var.secondary_disks, []) : (
         disk.create ? true : try(disk.disk_id != null, true)
       )
     ])

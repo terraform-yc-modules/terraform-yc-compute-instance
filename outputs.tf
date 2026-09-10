@@ -31,7 +31,7 @@ output "boot_disk_id" {
 output "secondary_disk_ids" {
   description = "The list of secondary disk IDs"
   value = [
-    for index, disk in var.secondary_disks :
+    for index, disk in local.secondary_disks :
     disk.create ? (disk.disk_id == null ? yandex_compute_disk.secondary[index].id : disk.disk_id) : disk.disk_id
   ]
 }

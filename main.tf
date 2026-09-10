@@ -64,7 +64,7 @@ resource "yandex_compute_instance" "this" {
 
 
   dynamic "secondary_disk" {
-    for_each = var.secondary_disks
+    for_each = local.secondary_disks
     content {
       disk_id     = (secondary_disk.value.create ? secondary_disk.value.disk_id == null : false) ? yandex_compute_disk.secondary[secondary_disk.key].id : secondary_disk.value.disk_id
       auto_delete = secondary_disk.value.auto_delete

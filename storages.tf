@@ -20,7 +20,7 @@ resource "yandex_compute_disk" "this" {
 }
 
 resource "yandex_compute_disk" "secondary" {
-  for_each    = { for idx, disk in var.secondary_disks : idx => disk if disk.create ? disk.disk_id == null : false }
+  for_each    = { for idx, disk in local.secondary_disks : idx => disk if disk.create ? disk.disk_id == null : false }
   name        = format("%s-secondary-disk-%d", var.name, each.key + 1)
   description = lookup(each.value, "description", null)
   folder_id   = local.folder_id
