@@ -23,17 +23,19 @@ terraform state rm 'module.instance.yandex_compute_disk.this'
 
 Run `state rm` only after the ownership handoff and ID verification. It removes Terraform ownership, not the cloud disk. Do not use it to make an attached boot disk disappear from state; first choose and verify the replacement/retention strategy.
 
-External secondary disks and filesystems are now attached without a module-created duplicate. Their original list indexes remain the attachment and generated-resource keys.
+External secondary disks and filesystems are now attached without a module-created duplicate. Their original list indexes remain the attachment and generated-resource keys. The generated resources use `for_each`, so their numeric-looking state keys are strings: for example, `yandex_compute_disk.secondary["0"]` and `yandex_compute_filesystem.this["0"]`.
 
 ## Secondary disks and filesystems with existing state
 
-The legacy numeric state addresses remain `yandex_compute_disk.secondary[<input-index>]` and `yandex_compute_filesystem.this[<input-index>]`. When an input switches to an external `disk_id` or `filesystem_id`, the module filters the corresponding managed resource out of configuration. A saved plan can therefore schedule a legacy resource at that exact address for destruction.
+The generated-resource state addresses use string keys derived from the legacy input indexes: `yandex_compute_disk.secondary["<input-index>"]` and `yandex_compute_filesystem.this["<input-index>"]`. When an input switches to an external `disk_id` or `filesystem_id`, the module filters the corresponding managed resource out of configuration. A saved plan can therefore schedule a legacy resource at that exact address for destruction.
 
 Before applying, compare the attachment ID with the state object. Destroy only a confirmed duplicate. If the legacy resource must remain, hand off ownership first (for example, import it into a dedicated configuration), then remove this module's state address deliberately; do not use a state removal to hide an attached or still-required object.
 
 Known `boot_disk.disk_id`, `secondary_disks[*].disk_id`, and `filesystems[*].filesystem_id` values retain this automatic no-create behavior. When the ID comes from a resource in the same plan and is therefore unknown during planning, set `create = false` on that storage object. This explicitly keeps it external, skips the boot-image lookup for an external boot disk, and allows the instance attachment to keep the unknown ID until apply.
 
 `create = false` changes resource ownership only. It does **not** change the legacy `auto_delete = true` default for boot and secondary disks. Set `auto_delete = false` for fixture- or user-owned disks before destroying the VM, or the instance destroy can delete those disks.
+
+`secondary_disk_ids` and `filesystem_ids` now intentionally follow the caller's input-list order. Previously, traversing the generated resource maps could order string keys lexicographically once there were 11 or more entries (for example, `"10"` before `"2"`); do not rely on that former ordering.
 
 ## Metadata and agents
 
