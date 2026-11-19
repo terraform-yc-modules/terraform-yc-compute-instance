@@ -57,8 +57,8 @@ module "dev" {
     scope       = "dev"
   }
   static_ip = {
-    name        = "my-static-ip"
-    description = "Static IP for dev instance"
+    description             = "Static IP for dev instance"
+    network_interface_index = 0
     external_ipv4_address = {
       zone_id = var.yc_zone
     }
