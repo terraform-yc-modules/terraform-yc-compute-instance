@@ -106,7 +106,7 @@ module "compute_instance" {
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3.0 |
 | <a name="requirement_random"></a> [random](#requirement\_random) | > 3.3 |
 | <a name="requirement_yandex"></a> [yandex](#requirement\_yandex) | >= 0.216.0 |
@@ -114,9 +114,9 @@ module "compute_instance" {
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_random"></a> [random](#provider\_random) | 3.9.0 |
-| <a name="provider_yandex"></a> [yandex](#provider\_yandex) | 0.225.0 |
+| ---- | ------- |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.9.1 |
+| <a name="provider_yandex"></a> [yandex](#provider\_yandex) | 0.250.0 |
 
 ## Modules
 
@@ -125,7 +125,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [random_string.unique_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 | [yandex_backup_policy_bindings.this](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/backup_policy_bindings) | resource |
 | [yandex_backup_policy_bindings.this_backup_binding](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/backup_policy_bindings) | resource |
@@ -144,7 +144,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_allow_stopping_for_update"></a> [allow\_stopping\_for\_update](#input\_allow\_stopping\_for\_update) | If true, allows Terraform to stop the instance in order to update its properties. If you try to update a property that requires stopping the instance without setting this field, the update will fail. | `bool` | `false` | no |
 | <a name="input_backup"></a> [backup](#input\_backup) | Enable Yandex Cloud backup. By default it installs the agent and, if service\_account\_id is not provided,<br/>creates a service account with backup.editor. Set install\_backup\_agent=false for a preinstalled agent.<br/>Use backup\_policy\_id to specify backup policy OR backup\_frequency to specify backup frequency from default policies. | `bool` | `false` | no |
 | <a name="input_backup_frequency"></a> [backup\_frequency](#input\_backup\_frequency) | Name of the backup policy. Can be 'Default daily', 'Default weekly', 'Default monthly' or custom policy name. | `string` | `"Default daily"` | no |
@@ -186,7 +186,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_attached_boot_disk"></a> [attached\_boot\_disk](#output\_attached\_boot\_disk) | Full boot disk attachment object. |
 | <a name="output_attached_filesystems"></a> [attached\_filesystems](#output\_attached\_filesystems) | Full filesystem attachment objects. |
 | <a name="output_attached_secondary_disks"></a> [attached\_secondary\_disks](#output\_attached\_secondary\_disks) | Full secondary disk attachment objects. |
