@@ -1,6 +1,6 @@
 # VPC and Subnets
 resource "yandex_vpc_network" "vpc" {
-  name = "vpc-compute-instance"
+  name = format("%svpc-compute-instance", var.name_prefix == null ? "" : var.name_prefix)
 }
 
 resource "yandex_vpc_subnet" "sub_a" {
