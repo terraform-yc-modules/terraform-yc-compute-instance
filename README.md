@@ -104,7 +104,7 @@ module "compute_instance" {
 ## Requirements
 
 | Name | Version |
-|------|---------|
+| ---- | ------- |
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.0 |
 | <a name="requirement_null"></a> [null](#requirement\_null) | >= 3.0 |
@@ -114,9 +114,9 @@ module "compute_instance" {
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_random"></a> [random](#provider\_random) | 3.9.0 |
-| <a name="provider_yandex"></a> [yandex](#provider\_yandex) | 0.225.0 |
+| ---- | ------- |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.9.1 |
+| <a name="provider_yandex"></a> [yandex](#provider\_yandex) | 0.250.0 |
 
 ## Modules
 
@@ -125,7 +125,7 @@ No modules.
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [random_string.unique_id](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 | [yandex_backup_policy_bindings.this](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/backup_policy_bindings) | resource |
 | [yandex_backup_policy_bindings.this_backup_binding](https://registry.terraform.io/providers/yandex-cloud/yandex/latest/docs/resources/backup_policy_bindings) | resource |
@@ -144,7 +144,7 @@ No modules.
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_allow_recreate"></a> [allow\_recreate](#input\_allow\_recreate) | If true, allows Terraform to recreate the instance or module-created disks when an update cannot be performed in place. | `bool` | `false` | no |
 | <a name="input_allow_stopping_for_update"></a> [allow\_stopping\_for\_update](#input\_allow\_stopping\_for\_update) | If true, allows Terraform to stop the instance in order to update its properties. If you try to update a property that requires stopping the instance without setting this field, the update will fail. | `bool` | `false` | no |
 | <a name="input_backup"></a> [backup](#input\_backup) | Enable Yandex Cloud backup for the instance. If enabled and service\_account\_id is not provided,<br/>a new service account with backup.editor role will be created.<br/>Use backup\_policy\_id to specify backup policy OR backup\_frequency to specify backup frequency from default policies. | `bool` | `false` | no |
@@ -186,7 +186,7 @@ No modules.
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_boot_disk_id"></a> [boot\_disk\_id](#output\_boot\_disk\_id) | The ID of the boot disk |
 | <a name="output_external_ip"></a> [external\_ip](#output\_external\_ip) | The external IP address of the instance |
 | <a name="output_filesystem_ids"></a> [filesystem\_ids](#output\_filesystem\_ids) | The list of filesystem IDs |

@@ -466,7 +466,7 @@ variable "secondary_disks" {
 
   validation {
     condition = alltrue([
-      for disk in var.secondary_disks : (
+      for disk in coalesce(var.secondary_disks, []) : (
         disk.hardware_generation == null ? true : (
           disk.hardware_generation.legacy_features == null ||
           disk.hardware_generation.generation2_features == null
