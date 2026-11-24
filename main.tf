@@ -19,10 +19,33 @@ resource "yandex_compute_instance" "this" {
   metadata           = local.instance_metadata
 
   allow_stopping_for_update = var.allow_stopping_for_update
+  allow_recreate            = var.allow_recreate
   network_acceleration_type = var.network_acceleration_type
   gpu_cluster_id            = var.gpu_cluster_id
   maintenance_policy        = var.maintenance_policy
   maintenance_grace_period  = var.maintenance_grace_period
+  reserved_instance_pool_id = var.reserved_instance_pool_id
+
+  dynamic "metadata_options" {
+    for_each = var.metadata_options == null ? [] : [var.metadata_options]
+    content {
+      gce_http_endpoint    = metadata_options.value.gce_http_endpoint
+      gce_http_token       = metadata_options.value.gce_http_token
+      aws_v1_http_endpoint = metadata_options.value.aws_v1_http_endpoint
+      aws_v1_http_token    = metadata_options.value.aws_v1_http_token
+      aws_v2_http_endpoint = metadata_options.value.aws_v2_http_endpoint
+      aws_v2_http_token    = metadata_options.value.aws_v2_http_token
+    }
+  }
+
+  dynamic "local_disk" {
+    for_each = var.local_disks
+    content {
+      size_bytes = local_disk.value.size_bytes
+      kms_key_id = local_disk.value.kms_key_id
+    }
+  }
+
   resources {
     cores         = var.cores
     core_fraction = var.core_fraction
@@ -47,6 +70,8 @@ resource "yandex_compute_instance" "this" {
         network_interface.value.nat_ip_address != null ? network_interface.value.nat_ip_address :
         (network_interface.key == local.managed_static_ip_network_interface_index ? yandex_vpc_address.static_ip[0].external_ipv4_address[0].address : null)
       ) : null
+      ipv6         = lookup(network_interface.value, "ipv6", null)
+      ipv6_address = lookup(network_interface.value, "ipv6_address", null)
 
       security_group_ids = lookup(network_interface.value, "security_group_ids", null)
 
@@ -57,6 +82,26 @@ resource "yandex_compute_instance" "this" {
           dns_zone_id = lookup(dns_record.value, "dns_zone_id", null)
           ttl         = lookup(dns_record.value, "ttl", null)
           ptr         = lookup(dns_record.value, "ptr", false)
+        }
+      }
+
+      dynamic "ipv6_dns_record" {
+        for_each = lookup(network_interface.value, "ipv6_dns_record", [])
+        content {
+          fqdn        = ipv6_dns_record.value.fqdn
+          dns_zone_id = lookup(ipv6_dns_record.value, "dns_zone_id", null)
+          ttl         = lookup(ipv6_dns_record.value, "ttl", null)
+          ptr         = lookup(ipv6_dns_record.value, "ptr", false)
+        }
+      }
+
+      dynamic "nat_dns_record" {
+        for_each = lookup(network_interface.value, "nat_dns_record", [])
+        content {
+          fqdn        = nat_dns_record.value.fqdn
+          dns_zone_id = lookup(nat_dns_record.value, "dns_zone_id", null)
+          ttl         = lookup(nat_dns_record.value, "ttl", null)
+          ptr         = lookup(nat_dns_record.value, "ptr", false)
         }
       }
     }
@@ -78,7 +123,8 @@ resource "yandex_compute_instance" "this" {
   }
 
   placement_policy {
-    placement_group_id = var.placement_policy.placement_group_id
+    placement_group_id        = var.placement_policy.placement_group_id
+    placement_group_partition = var.placement_policy.placement_group_partition
 
     dynamic "host_affinity_rules" {
       for_each = var.placement_policy.host_affinity_rules != null ? [for r in var.placement_policy.host_affinity_rules : r] : []
